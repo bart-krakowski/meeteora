@@ -1,2 +1,2 @@
 export const SCHEDULING_QUEUE = 'scheduling';
-export const NOTIFICATIONS_QUEUE = 'notifications';
+export const SCHEDULING_EVENTS_EXCHANGE = 'scheduling.events';

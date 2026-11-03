@@ -4,6 +4,9 @@ export const SchedulingPatterns = {
   health: 'scheduling.health',
   listSlots: 'slots.list',
   createBooking: 'bookings.create',
+  listBookings: 'bookings.list',
+  getBooking: 'bookings.get',
+  cancelBooking: 'bookings.cancel',
 } as const;
 
 export interface ListSlotsRequest {
@@ -13,10 +16,26 @@ export interface ListSlotsRequest {
 
 export type ListSlotsResponse = GenerateSlotsResult;
 
+export interface Attendee {
+  name: string;
+  email: string;
+}
+
 export interface CreateBookingRequest {
   ruleId: string;
   start: string;
+  attendee: Attendee;
 }
+
+export interface ListBookingsRequest {
+  from: string;
+}
+
+export interface BookingIdRequest {
+  id: string;
+}
+
+export type BookingStatus = 'confirmed' | 'cancelled';
 
 export interface Booking {
   id: string;
@@ -24,6 +43,8 @@ export interface Booking {
   resourceId: string;
   startAt: string;
   endAt: string;
+  status: BookingStatus;
+  attendee: Attendee;
 }
 
 export interface HealthResponse {

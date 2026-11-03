@@ -38,19 +38,19 @@ import type {
   WorkingCalendar,
 } from '@tanstack/time'
 import type { DragEndEvent, DragMoveEvent, DragStartEvent } from '@dnd-kit/react'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
+import { Button } from '@scheduler/ui/components/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@scheduler/ui/components/dialog'
+import { Input } from '@scheduler/ui/components/input'
+import { Label } from '@scheduler/ui/components/label'
+import { Badge } from '@scheduler/ui/components/badge'
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu'
-import { ScrollArea } from '@/components/ui/scroll-area'
+} from '@scheduler/ui/components/context-menu'
+import { ScrollArea } from '@scheduler/ui/components/scroll-area'
 
 
 
@@ -337,7 +337,7 @@ function OverlayDayParts({
   return overlayCalendars
     .filter((system) => calendarIds.includes(system.id))
     .map((system) => (
-      <span key={system.id} className="block text-xs font-normal text-amber-500/80">
+      <span key={system.id} className="block text-xs font-normal text-neutral-500/80">
         {system.render(
           calendar.getDateParts(isoDate, {
             calendar: system.id,
@@ -381,26 +381,26 @@ const eventCategories: Array<EventCategory> = [
   {
     id: 'work',
     label: 'Work',
-    swatch: '#1d4ed8',
-    eventClass: 'bg-blue-900/80 border-blue-700/60 hover:bg-blue-800/90',
+    swatch: '#525252',
+    eventClass: 'bg-neutral-900/80 border-neutral-700/60 hover:bg-neutral-800/90',
   },
   {
     id: 'team',
     label: 'Team',
-    swatch: '#047857',
-    eventClass: 'bg-emerald-900/80 border-emerald-700/60 hover:bg-emerald-800/90',
+    swatch: '#737373',
+    eventClass: 'bg-neutral-800/80 border-neutral-600/60 hover:bg-neutral-700/90',
   },
   {
     id: 'personal',
     label: 'Personal',
-    swatch: '#7e22ce',
-    eventClass: 'bg-purple-900/80 border-purple-700/60 hover:bg-purple-800/90',
+    swatch: '#a3a3a3',
+    eventClass: 'bg-neutral-700/80 border-neutral-500/60 hover:bg-neutral-600/90',
   },
   {
     id: 'holiday',
     label: 'Holidays',
-    swatch: '#b45309',
-    eventClass: 'bg-amber-800/80 border-amber-600/60 hover:bg-amber-700/90',
+    swatch: '#d4d4d4',
+    eventClass: 'bg-neutral-600/80 border-neutral-400/60 hover:bg-neutral-500/90',
   },
 ]
 
@@ -1305,7 +1305,7 @@ function ScheduleView({
                                       )}
                                       {concurrency > 1 && (
                                         <span
-                                          className="text-[10px] leading-none rounded bg-amber-500/20 text-amber-200 px-1 py-0.5 font-semibold shrink-0"
+                                          className="text-[10px] leading-none rounded bg-neutral-500/20 text-neutral-200 px-1 py-0.5 font-semibold shrink-0"
                                           title={`Overlaps ${concurrency - 1} other event(s)`}
                                         >
                                           ⇄{concurrency}
@@ -1436,32 +1436,32 @@ function ResizeErrorToast({
 
   return (
     <div className="fixed bottom-5 right-5 z-50 animate-in slide-in-from-bottom-2 fade-in duration-200">
-      <div className="bg-red-950/90 border border-red-700/50 text-red-200 rounded-lg px-4 py-3 shadow-lg max-w-md">
+      <div className="bg-neutral-950/90 border border-neutral-700/50 text-neutral-200 rounded-lg px-4 py-3 shadow-lg max-w-md">
         <div className="flex items-start gap-3">
-          <div className="text-red-400 text-lg">⚠</div>
+          <div className="text-neutral-400 text-lg">⚠</div>
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-red-100 mb-1">{title}</div>
-            <div className="text-sm text-red-200/80 mb-2">{error.message}</div>
+            <div className="font-semibold text-neutral-100 mb-1">{title}</div>
+            <div className="text-sm text-neutral-200/80 mb-2">{error.message}</div>
             {error.conflicts && error.conflicts.length > 0 && (
               <div className="mt-2 space-y-1">
-                <div className="text-xs text-red-300/70 font-medium uppercase tracking-wide">
+                <div className="text-xs text-neutral-300/70 font-medium uppercase tracking-wide">
                   Conflicts:
                 </div>
                 {error.conflicts.map((conflict, idx) => (
                   <div
                     key={idx}
-                    className="text-xs text-red-200/70 bg-red-950/50 rounded px-2 py-1.5 border border-red-800/30"
+                    className="text-xs text-neutral-200/70 bg-neutral-950/50 rounded px-2 py-1.5 border border-neutral-800/30"
                   >
-                    <div className="font-medium text-red-200/90">{conflict.date}</div>
-                    <div className="text-red-300/60">
+                    <div className="font-medium text-neutral-200/90">{conflict.date}</div>
+                    <div className="text-neutral-300/60">
                       {conflict.conflictRange.start} - {conflict.conflictRange.end}
                     </div>
-                    <div className="text-red-300/50 mt-0.5">{conflict.description}</div>
+                    <div className="text-neutral-300/50 mt-0.5">{conflict.description}</div>
                   </div>
                 ))}
               </div>
             )}
-            <div className="text-xs text-red-300/60 mt-2">{error.eventTitle}</div>
+            <div className="text-xs text-neutral-300/60 mt-2">{error.eventTitle}</div>
           </div>
           <Button
             variant="ghost"
@@ -2202,9 +2202,8 @@ export function CalendarView() {
       onDragMove={handleDragMove}
       onDragEnd={handleDragEnd}
     >
-      <div className="p-5 max-w-[1200px] mx-auto min-h-screen">
+      <div className="p-4 lg:p-6">
         <div className="mb-6">
-          <h1 className="m-0 mb-4 text-[28px] font-semibold text-white">TanStack Time</h1>
 
           <div className="flex gap-3 items-center mb-4 flex-wrap">
             <Button
@@ -2406,7 +2405,7 @@ export function CalendarView() {
             {overlayCalendars
               .filter((system) => overlayCalendarIds.includes(system.id))
               .map((system) => (
-                <div key={system.id} className="text-xs text-amber-500/80">
+                <div key={system.id} className="text-xs text-neutral-500/80">
                   {calendar.formatPeriod(visibleMonth, {
                     calendar: system.id,
                     locale: system.locale,

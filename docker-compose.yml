@@ -50,6 +50,7 @@ services:
       dockerfile: apps/notifications/Dockerfile
     environment:
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-scheduler}:${RABBITMQ_PASSWORD:-scheduler}@rabbitmq:5672
+      NOTIFICATIONS_PORT: 3002
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -74,10 +75,12 @@ services:
       dockerfile: apps/web/Dockerfile
     environment:
       API_URL: http://api:3001
+      NOTIFICATIONS_URL: http://notifications:3002
     ports:
       - '3000:3000'
     depends_on:
       - api
+      - notifications
 
 volumes:
   db-data:

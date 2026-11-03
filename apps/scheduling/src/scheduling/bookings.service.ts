@@ -1,24 +1,23 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { type ClientProxy, RpcException } from '@nestjs/microservices';
+import { Inject, Injectable } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 import {
   type Booking,
-  type BookingCreatedEvent,
+  type BookingIdRequest,
   type CreateBookingRequest,
   Events,
+  type ListBookingsRequest,
   type RpcError,
 } from '@scheduler/contracts';
-import { eq, sql } from 'drizzle-orm';
-import { lastValueFrom } from 'rxjs';
+import { and, asc, eq, gte, sql } from 'drizzle-orm';
 import { DATABASE, type Database } from '../database/database';
-import { bookings, organizations } from '../database/schema';
+import { bookings, organizations, outbox } from '../database/schema';
 import { parseInstant } from './instant';
 import { slotRules } from './schedule';
 import { SlotsService } from './slots.service';
 
-export const NOTIFICATIONS_CLIENT = Symbol('NOTIFICATIONS_CLIENT');
-
 const DEFAULT_ORGANIZATION_SLUG = 'default';
 const BOOKING_LOCK_KEY = 'bookings';
+const LIST_LIMIT = 200;
 
 function rpcError(status: number, message: string): RpcException {
   return new RpcException({ status, message } satisfies RpcError);
@@ -26,6 +25,8 @@ function rpcError(status: number, message: string): RpcException {
 
 function toBooking(row: typeof bookings.$inferSelect): Booking {
   return {
+    status: row.status,
+    attendee: { name: row.attendeeName, email: row.attendeeEmail },
     id: row.id,
     ruleId: row.ruleId,
     resourceId: row.resourceId,
@@ -36,17 +37,16 @@ function toBooking(row: typeof bookings.$inferSelect): Booking {
 
 @Injectable()
 export class BookingsService {
-  private readonly logger = new Logger(BookingsService.name);
-
   @Inject(DATABASE)
   private readonly db: Database;
 
-  @Inject(NOTIFICATIONS_CLIENT)
-  private readonly notifications: ClientProxy;
-
   constructor(@Inject(SlotsService) private readonly slots: SlotsService) {}
 
-  async create({ ruleId, start }: CreateBookingRequest): Promise<Booking> {
+  async create({
+    ruleId,
+    start,
+    attendee,
+  }: CreateBookingRequest): Promise<Booking> {
     if (!slotRules.some((rule) => rule.id === ruleId)) {
       throw rpcError(404, `Unknown rule: ${ruleId}`);
     }
@@ -73,31 +73,58 @@ export class BookingsService {
           organizationId: organization.id,
           ruleId,
           resourceId,
+          attendeeName: attendee.name,
+          attendeeEmail: attendee.email,
           startAt: new Date(slot.startEpochMs),
           endAt: new Date(slot.endEpochMs),
         })
         .returning();
+      await this.queueEvent(tx, Events.bookingCreated, toBooking(inserted));
       return inserted;
     });
 
-    const booking = toBooking(row);
-    await this.publishCreated(booking);
-    return booking;
+    return toBooking(row);
   }
 
-  private async publishCreated(event: BookingCreatedEvent): Promise<void> {
-    try {
-      await lastValueFrom(
-        this.notifications.emit(Events.bookingCreated, event),
-        {
-          defaultValue: undefined,
-        },
-      );
-    } catch (error) {
-      this.logger.error(
-        `Failed to publish ${Events.bookingCreated} for ${event.id}`,
-        error,
-      );
-    }
+  async list({ from }: ListBookingsRequest): Promise<Array<Booking>> {
+    const rows = await this.db
+      .select()
+      .from(bookings)
+      .where(gte(bookings.startAt, parseInstant(from)))
+      .orderBy(asc(bookings.startAt))
+      .limit(LIST_LIMIT);
+    return rows.map(toBooking);
+  }
+
+  async get({ id }: BookingIdRequest): Promise<Booking> {
+    const [row] = await this.db.select().from(bookings).where(eq(bookings.id, id));
+    if (!row) throw rpcError(404, `Unknown booking: ${id}`);
+    return toBooking(row);
+  }
+
+  async cancel({ id }: BookingIdRequest): Promise<Booking> {
+    const row = await this.db.transaction(async (tx) => {
+      const [cancelled] = await tx
+        .update(bookings)
+        .set({ status: 'cancelled', cancelledAt: new Date() })
+        .where(and(eq(bookings.id, id), eq(bookings.status, 'confirmed')))
+        .returning();
+      if (cancelled) {
+        await this.queueEvent(tx, Events.bookingCancelled, toBooking(cancelled));
+      }
+      return cancelled;
+    });
+    if (!row) return this.get({ id });
+    return toBooking(row);
+  }
+
+  // Events are written to the outbox in the same transaction as the state
+  // change; OutboxRelay publishes them asynchronously (at-least-once).
+  private async queueEvent(
+    db: Pick<Database, 'insert'>,
+    topic: string,
+    payload: Booking,
+  ): Promise<void> {
+    await db.insert(outbox).values({ topic, payload });
   }
 }

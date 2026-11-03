@@ -15,4 +15,5 @@ COPY --from=build /out/node_modules ./node_modules
 COPY --from=build /out/package.json ./package.json
 COPY --from=build /repo/apps/notifications/dist ./dist
 USER node
+EXPOSE 3002
 CMD ["node", "dist/main.js"]

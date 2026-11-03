@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { NOTIFICATIONS_QUEUE } from '@scheduler/contracts';
+import { SCHEDULING_EVENTS_EXCHANGE } from '@scheduler/contracts';
 import { BookingsController } from './bookings.controller';
-import { BookingsService, NOTIFICATIONS_CLIENT } from './bookings.service';
+import { BookingsService } from './bookings.service';
+import { OutboxRelay, SCHEDULING_EVENTS_CLIENT } from './outbox.relay';
 import { SlotsController } from './slots.controller';
 import { SlotsService } from './slots.service';
 
@@ -11,14 +12,15 @@ import { SlotsService } from './slots.service';
   imports: [
     ClientsModule.registerAsync([
       {
-        name: NOTIFICATIONS_CLIENT,
+        name: SCHEDULING_EVENTS_CLIENT,
         inject: [ConfigService],
         useFactory: (config: ConfigService) => ({
           transport: Transport.RMQ,
           options: {
             urls: [config.getOrThrow<string>('RABBITMQ_URL')],
-            queue: NOTIFICATIONS_QUEUE,
-            queueOptions: { durable: true },
+            exchange: SCHEDULING_EVENTS_EXCHANGE,
+            exchangeType: 'topic',
+            wildcards: true,
             persistent: true,
           },
         }),
@@ -26,6 +28,6 @@ import { SlotsService } from './slots.service';
     ]),
   ],
   controllers: [SlotsController, BookingsController],
-  providers: [SlotsService, BookingsService],
+  providers: [SlotsService, BookingsService, OutboxRelay],
 })
 export class SchedulingModule {}

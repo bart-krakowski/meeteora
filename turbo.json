@@ -1,11 +1,11 @@
 {
-  "$schema": "https://turbo.build/schema.json",
+  "$schema": "https://turborepo.dev/schema.json",
   "globalDependencies": [".env.*local"],
   "globalPassThroughEnv": ["NODE_ENV"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "build/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "!.next/dev/**", "build/**"]
     },
     "dev": {
       "dependsOn": ["^build"],
@@ -17,8 +17,11 @@
       "cache": false
     },
     "format:check": {},
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
     "test": {
-      "dependsOn": ["build"]
+      "dependsOn": ["^build"]
     },
     "db:generate": {
       "cache": false

@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { BookingNotificationsController } from './bookings/booking-notifications.controller';
+import { HealthController } from './health/health.controller';
+import { BookingEventsController } from './notifications/booking-events.controller';
+import { NotificationsHub } from './notifications/notifications.hub';
+import { NotificationsStreamController } from './notifications/notifications-stream.controller';
 
 @Module({
   imports: [
@@ -9,6 +12,11 @@ import { BookingNotificationsController } from './bookings/booking-notifications
       envFilePath: ['.env', '../../.env'],
     }),
   ],
-  controllers: [BookingNotificationsController],
+  controllers: [
+    HealthController,
+    BookingEventsController,
+    NotificationsStreamController,
+  ],
+  providers: [NotificationsHub],
 })
 export class AppModule {}

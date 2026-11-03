@@ -7,8 +7,10 @@ import {
 import type { ClientProxy } from '@nestjs/microservices';
 import {
   type Booking,
+  type BookingIdRequest,
   type CreateBookingRequest,
   type HealthResponse,
+  type ListBookingsRequest,
   type ListSlotsRequest,
   type ListSlotsResponse,
   type RpcError,
@@ -44,6 +46,18 @@ export class SchedulingClient {
 
   createBooking(request: CreateBookingRequest): Promise<Booking> {
     return this.send(SchedulingPatterns.createBooking, request);
+  }
+
+  listBookings(request: ListBookingsRequest): Promise<Array<Booking>> {
+    return this.send(SchedulingPatterns.listBookings, request);
+  }
+
+  getBooking(request: BookingIdRequest): Promise<Booking> {
+    return this.send(SchedulingPatterns.getBooking, request);
+  }
+
+  cancelBooking(request: BookingIdRequest): Promise<Booking> {
+    return this.send(SchedulingPatterns.cancelBooking, request);
   }
 
   private async send<TResult>(

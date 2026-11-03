@@ -37,6 +37,11 @@ spec:
                 configMapKeyRef:
                   name: scheduler-config
                   key: API_URL
+            - name: NOTIFICATIONS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: scheduler-config
+                  key: NOTIFICATIONS_URL
           livenessProbe:
             tcpSocket:
               port: 3000

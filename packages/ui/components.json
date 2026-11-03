@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "base-luma",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "../../apps/web/src/app/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "iconLibrary": "hugeicons",
+  "aliases": {
+    "components": "@scheduler/ui/components",
+    "utils": "@scheduler/ui/lib/utils",
+    "ui": "@scheduler/ui/components",
+    "lib": "@scheduler/ui/lib",
+    "hooks": "@scheduler/ui/hooks"
+  },
+  "menuColor": "default",
+  "menuAccent": "subtle",
+  "rtl": false
+}

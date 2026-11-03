@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notifications
+  namespace: scheduler-saas
+spec:
+  selector:
+    app: notifications
+  ports:
+    - port: 3002
+      targetPort: 3002
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -41,6 +53,25 @@ spec:
                   key: RABBITMQ_PASSWORD
             - name: RABBITMQ_URL
               value: "amqp://$(RABBITMQ_USER):$(RABBITMQ_PASSWORD)@rabbitmq:5672"
+            - name: NOTIFICATIONS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: scheduler-config
+                  key: NOTIFICATIONS_PORT
+          ports:
+            - containerPort: 3002
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3002
+            initialDelaySeconds: 10
+            periodSeconds: 10
           resources:
             requests:
               memory: "128Mi"

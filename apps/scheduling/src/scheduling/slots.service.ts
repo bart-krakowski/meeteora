@@ -5,7 +5,7 @@ import type {
   Slot,
   SlotOccupyingEvent,
 } from '@tanstack/time';
-import { and, gt, lt } from 'drizzle-orm';
+import { and, eq, gt, lt } from 'drizzle-orm';
 import {
   DATABASE,
   type Database,
@@ -64,6 +64,7 @@ export class SlotsService {
       .from(bookings)
       .where(
         and(
+          eq(bookings.status, 'confirmed'),
           lt(bookings.startAt, new Date(to.getTime() + EVENT_PADDING_MS)),
           gt(bookings.endAt, new Date(from.getTime() - EVENT_PADDING_MS)),
         ),

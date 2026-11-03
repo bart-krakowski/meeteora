@@ -14,18 +14,21 @@
     "start:dev": "tsx watch --tsconfig ./tsconfig.json src/main.ts",
     "start:debug": "tsx watch --inspect-brk --tsconfig ./tsconfig.json src/main.ts",
     "start:prod": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
     "lint": "oxlint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
-    "dev": "tsx watch --tsconfig ./tsconfig.json src/main.ts"
+    "dev": "tsx watch --tsconfig ./tsconfig.json src/main.ts",
+    "simulate": "tsx --env-file-if-exists=../../.env --tsconfig ./tsconfig.json src/simulator/simulate.ts"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
     "@nestjs/config": "^12.0.1",
     "@nestjs/core": "^12.0.1",
     "@nestjs/microservices": "^12.1.2",
+    "@nestjs/platform-express": "^12.1.1",
     "@scheduler/contracts": "workspace:*",
     "amqp-connection-manager": "^5.0.0",
     "amqplib": "^2.2.0",
@@ -33,11 +36,11 @@
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@scheduler/typescript": "workspace:*",
     "@nestjs/cli": "^12.0.0",
     "@nestjs/mau": "^0.2.6",
     "@nestjs/schematics": "^12.0.0",
     "@nestjs/testing": "^12.0.1",
+    "@scheduler/typescript": "workspace:*",
     "@types/node": "^24.0.0",
     "@vitest/coverage-v8": "^4.1.2",
     "oxfmt": "^0.72.0",

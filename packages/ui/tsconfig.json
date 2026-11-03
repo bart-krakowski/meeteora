@@ -1,0 +1,13 @@
+{
+  "extends": "@scheduler/typescript/tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "paths": {
+      "@scheduler/ui/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}
