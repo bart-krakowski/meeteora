@@ -3,31 +3,34 @@ import {
   Inject,
   Injectable,
   ServiceUnavailableException,
-} from '@nestjs/common';
-import type { ClientProxy } from '@nestjs/microservices';
+} from "@nestjs/common";
+import type { ClientProxy } from "@nestjs/microservices";
 import {
   type Booking,
   type BookingIdRequest,
   type CreateBookingRequest,
+  type CreateEventTypeRequest,
+  type EventType,
+  type EventTypeIdRequest,
   type HealthResponse,
   type ListBookingsRequest,
   type ListSlotsRequest,
   type ListSlotsResponse,
   type RpcError,
   SchedulingPatterns,
-} from '@scheduler/contracts';
-import { firstValueFrom, timeout } from 'rxjs';
+} from "@scheduler/contracts";
+import { firstValueFrom, timeout } from "rxjs";
 
-export const SCHEDULING_SERVICE = Symbol('SCHEDULING_SERVICE');
+export const SCHEDULING_SERVICE = Symbol("SCHEDULING_SERVICE");
 
 const REQUEST_TIMEOUT_MS = 5000;
 
 function isRpcError(error: unknown): error is RpcError {
   return (
-    typeof error === 'object' &&
+    typeof error === "object" &&
     error !== null &&
-    typeof (error as RpcError).status === 'number' &&
-    typeof (error as RpcError).message === 'string'
+    typeof (error as RpcError).status === "number" &&
+    typeof (error as RpcError).message === "string"
   );
 }
 
@@ -58,6 +61,18 @@ export class SchedulingClient {
 
   cancelBooking(request: BookingIdRequest): Promise<Booking> {
     return this.send(SchedulingPatterns.cancelBooking, request);
+  }
+
+  listEventTypes(): Promise<Array<EventType>> {
+    return this.send(SchedulingPatterns.listEventTypes, {});
+  }
+
+  createEventType(request: CreateEventTypeRequest): Promise<EventType> {
+    return this.send(SchedulingPatterns.createEventType, request);
+  }
+
+  deleteEventType(request: EventTypeIdRequest): Promise<EventType> {
+    return this.send(SchedulingPatterns.deleteEventType, request);
   }
 
   private async send<TResult>(

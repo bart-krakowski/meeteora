@@ -1,5 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { RpcException } from '@nestjs/microservices';
+import { Inject, Injectable } from "@nestjs/common";
+import { RpcException } from "@nestjs/microservices";
 import {
   type Booking,
   type BookingIdRequest,
@@ -7,16 +7,20 @@ import {
   Events,
   type ListBookingsRequest,
   type RpcError,
-} from '@scheduler/contracts';
-import { and, asc, eq, gte, sql } from 'drizzle-orm';
-import { DATABASE, type Database } from '../database/database';
-import { bookings, organizations, outbox } from '../database/schema';
-import { parseInstant } from './instant';
-import { slotRules } from './schedule';
-import { SlotsService } from './slots.service';
+} from "@scheduler/contracts";
+import { and, asc, eq, gte, sql } from "drizzle-orm";
+import { DATABASE, type Database } from "../database/database";
+import {
+  bookings,
+  eventTypes,
+  organizations,
+  outbox,
+} from "../database/schema";
+import { parseInstant } from "./instant";
+import { SlotsService } from "./slots.service";
 
-const DEFAULT_ORGANIZATION_SLUG = 'default';
-const BOOKING_LOCK_KEY = 'bookings';
+const DEFAULT_ORGANIZATION_SLUG = "default";
+const BOOKING_LOCK_KEY = "bookings";
 const LIST_LIMIT = 200;
 
 function rpcError(status: number, message: string): RpcException {
@@ -47,9 +51,6 @@ export class BookingsService {
     start,
     attendee,
   }: CreateBookingRequest): Promise<Booking> {
-    if (!slotRules.some((rule) => rule.id === ruleId)) {
-      throw rpcError(404, `Unknown rule: ${ruleId}`);
-    }
     const startAt = parseInstant(start);
 
     const row = await this.db.transaction(async (tx) => {
@@ -57,15 +58,21 @@ export class BookingsService {
         sql`select pg_advisory_xact_lock(hashtext(${BOOKING_LOCK_KEY}))`,
       );
 
+      const [rule] = await tx
+        .select({ id: eventTypes.id })
+        .from(eventTypes)
+        .where(eq(eventTypes.id, ruleId));
+      if (!rule) throw rpcError(404, `Unknown rule: ${ruleId}`);
+
       const slot = await this.slots.find(ruleId, startAt, tx);
       const resourceId = slot?.availableResourceIds[0];
-      if (!slot || !resourceId) throw rpcError(409, 'Slot is not available');
+      if (!slot || !resourceId) throw rpcError(409, "Slot is not available");
 
       const [organization] = await tx
         .select({ id: organizations.id })
         .from(organizations)
         .where(eq(organizations.slug, DEFAULT_ORGANIZATION_SLUG));
-      if (!organization) throw rpcError(500, 'Default organization is missing');
+      if (!organization) throw rpcError(500, "Default organization is missing");
 
       const [inserted] = await tx
         .insert(bookings)
@@ -97,7 +104,10 @@ export class BookingsService {
   }
 
   async get({ id }: BookingIdRequest): Promise<Booking> {
-    const [row] = await this.db.select().from(bookings).where(eq(bookings.id, id));
+    const [row] = await this.db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, id));
     if (!row) throw rpcError(404, `Unknown booking: ${id}`);
     return toBooking(row);
   }
@@ -106,11 +116,15 @@ export class BookingsService {
     const row = await this.db.transaction(async (tx) => {
       const [cancelled] = await tx
         .update(bookings)
-        .set({ status: 'cancelled', cancelledAt: new Date() })
-        .where(and(eq(bookings.id, id), eq(bookings.status, 'confirmed')))
+        .set({ status: "cancelled", cancelledAt: new Date() })
+        .where(and(eq(bookings.id, id), eq(bookings.status, "confirmed")))
         .returning();
       if (cancelled) {
-        await this.queueEvent(tx, Events.bookingCancelled, toBooking(cancelled));
+        await this.queueEvent(
+          tx,
+          Events.bookingCancelled,
+          toBooking(cancelled),
+        );
       }
       return cancelled;
     });
@@ -121,7 +135,7 @@ export class BookingsService {
   // Events are written to the outbox in the same transaction as the state
   // change; OutboxRelay publishes them asynchronously (at-least-once).
   private async queueEvent(
-    db: Pick<Database, 'insert'>,
+    db: Pick<Database, "insert">,
     topic: string,
     payload: Booking,
   ): Promise<void> {

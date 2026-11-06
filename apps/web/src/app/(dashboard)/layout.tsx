@@ -21,9 +21,9 @@ export default function DashboardLayout({ children }: LayoutProps<'/'>) {
         <AppSidebar variant="inset" />
         <SidebarInset>
           <SiteHeader />
-          <div className="@container/main flex min-h-0 flex-1 flex-col overflow-y-auto">
-                      {children}
-                    </div>
+          <div className="@container/main flex min-h-0 flex-1 flex-col overflow-y-auto bg-background">
+            {children}
+          </div>
         </SidebarInset>
       </SidebarProvider>
       <Toaster theme="dark" />

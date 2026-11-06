@@ -1,33 +1,30 @@
-import type { Booking } from '@scheduler/contracts';
-import type { GenerateSlotsResult } from '@tanstack/time';
+import type {
+  Booking,
+  CreateBookingRequest,
+  CreateEventTypeRequest,
+  EventType,
+} from "@scheduler/contracts";
+import type { GenerateSlotsResult } from "@tanstack/time";
+import { ApiClient } from "./api-client";
 
-const API_URL = process.env.API_URL ?? 'http://localhost:3001';
+const client = new ApiClient(process.env.API_URL ?? "http://localhost:3001");
 
-export async function fetchSlots(): Promise<GenerateSlotsResult> {
-  const response = await fetch(`${API_URL}/slots`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`GET /slots failed: ${response.status}`);
-  return response.json();
-}
+export const fetchSlots = () => client.get<GenerateSlotsResult>("/slots");
 
-export async function fetchBookings(from: Date): Promise<Array<Booking>> {
-  const response = await fetch(
-    `${API_URL}/bookings?from=${encodeURIComponent(from.toISOString())}`,
-    {
-      cache: 'no-store',
-    },
-  );
-  if (!response.ok) throw new Error(`GET /bookings failed: ${response.status}`);
-  return response.json();
-}
+export const fetchBookings = (from: Date) =>
+  client.get<Array<Booking>>("/bookings", { from: from.toISOString() });
 
-export async function cancelBooking(id: string): Promise<Booking> {
-  const response = await fetch(
-    `${API_URL}/bookings/${encodeURIComponent(id)}`,
-    {
-      method: 'DELETE',
-    },
-  );
-  if (!response.ok)
-    throw new Error(`DELETE /bookings/${id} failed: ${response.status}`);
-  return response.json();
-}
+export const createBooking = (input: CreateBookingRequest) =>
+  client.post<Booking>("/bookings", input);
+
+export const cancelBooking = (id: string) =>
+  client.delete<Booking>(`/bookings/${encodeURIComponent(id)}`);
+
+export const fetchEventTypes = () =>
+  client.get<Array<EventType>>("/event-types");
+
+export const createEventType = (input: CreateEventTypeRequest) =>
+  client.post<EventType>("/event-types", input);
+
+export const deleteEventType = (id: string) =>
+  client.delete<EventType>(`/event-types/${encodeURIComponent(id)}`);

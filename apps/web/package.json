@@ -14,16 +14,24 @@
   "dependencies": {
     "@dnd-kit/dom": "^0.5.0",
     "@dnd-kit/react": "^0.5.0",
+    "@hugeicons/core-free-icons": "^4.4.0",
+    "@hugeicons/react": "^1.1.10",
     "@scheduler/contracts": "workspace:*",
     "@scheduler/ui": "workspace:*",
     "@tanstack/react-form": "^1.33.5",
+    "@tanstack/react-query": "^5.81.0",
     "@tanstack/react-time": "workspace:*",
     "@tanstack/time": "workspace:*",
-    "lucide-react": "^1.52.0",
+    "@trpc/client": "^11.4.0",
+    "@trpc/server": "^11.4.0",
+    "@trpc/tanstack-react-query": "^11.4.0",
+    "geist": "^1.9.2",
     "next": "16.3.7",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "tw-animate-css": "^1.4.0"
+    "server-only": "^0.0.1",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^3.25.0"
   },
   "devDependencies": {
     "@scheduler/typescript": "workspace:*",
@@ -33,7 +41,6 @@
     "@types/react-dom": "^19",
     "oxfmt": "^0.72.0",
     "oxlint": "^1.58.0",
-    "shadcn": "^4.23.0",
     "tailwindcss": "^4",
     "typescript": "^7.0.2"
   }

@@ -1,30 +1,37 @@
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
-import { TooltipProvider } from '@scheduler/ui/components/tooltip';
-import './globals.css';
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { TooltipProvider } from "@scheduler/ui/components/tooltip";
+import { TRPCReactProvider } from "@/trpc/provider";
+import "./globals.css";
 
 const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: 'Scheduler',
-  description: 'Scheduling SaaS',
+  title: "Scheduler",
+  description: "Scheduling SaaS",
 };
 
-export default function RootLayout({ children }: LayoutProps<'/'>) {
+export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col"><TooltipProvider>{children}</TooltipProvider></body>
+      {/* suppressHydrationWarning: browser extensions (e.g. Grammarly)
+          inject data-* attributes into <body> before hydration */}
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <TRPCReactProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </TRPCReactProvider>
+      </body>
     </html>
   );
 }

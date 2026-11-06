@@ -2296,27 +2296,6 @@ export function CalendarView() {
           )}
 
           <div className="mb-4 rounded-lg border border-neutral-800 bg-neutral-950 px-4 py-3">
-            <div className="mb-2 text-xs uppercase tracking-wide text-neutral-500">
-              Calendar systems
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {overlayCalendars.map((system) => (
-                <Button
-                  key={system.id}
-                  onClick={() => toggleOverlayCalendar(system.id)}
-                  variant={overlayCalendarIds.includes(system.id) ? 'secondary' : 'outline'}
-                  size="sm"
-                >
-                  {system.label}
-                </Button>
-              ))}
-              <span className="ml-2 text-xs text-neutral-500">
-                Overlaid via getDateParts(date, {'{ calendar }'}) — no calendar config needed
-              </span>
-            </div>
-          </div>
-
-          <div className="mb-4 rounded-lg border border-neutral-800 bg-neutral-950 px-4 py-3">
             <div className="mb-2 flex flex-wrap items-center gap-3">
               <span className="text-xs uppercase tracking-wide text-neutral-500">Calendars</span>
               <span className="text-xs text-neutral-500">

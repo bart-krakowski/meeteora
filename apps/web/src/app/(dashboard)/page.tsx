@@ -1,13 +1,13 @@
-import type { Booking } from '@scheduler/contracts';
-import { Badge } from '@scheduler/ui/components/badge';
-import { Button } from '@scheduler/ui/components/button';
+import type { Booking } from "@scheduler/contracts";
+import { Badge } from "@scheduler/ui/components/badge";
+import { Button } from "@scheduler/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@scheduler/ui/components/card';
+} from "@scheduler/ui/components/card";
 import {
   Table,
   TableBody,
@@ -15,17 +15,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@scheduler/ui/components/table';
-import { connection } from 'next/server';
-import { fetchBookings, fetchSlots } from '@/lib/api';
-import { formatDateTime, TIME_ZONE } from '@/lib/format';
-import { cancelBookingAction } from './actions';
+} from "@scheduler/ui/components/table";
+import { connection } from "next/server";
+import { api } from "@/trpc/server";
+import { formatDateTime, TIME_ZONE } from "@/lib/format";
+import { cancelBookingAction } from "./actions";
 
-const dayFormat = new Intl.DateTimeFormat('en-CA', { timeZone: TIME_ZONE });
+const dayFormat = new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE });
 
 function summarize(bookings: Array<Booking>, now: Date) {
   const confirmed = bookings.filter(
-    (booking) => booking.status === 'confirmed',
+    (booking) => booking.status === "confirmed",
   );
   const today = dayFormat.format(now);
   return {
@@ -50,7 +50,13 @@ function StatCard({ title, value }: { title: string; value: number }) {
   );
 }
 
-function BookingRow({ booking }: { booking: Booking }) {
+function BookingRow({
+  booking,
+  eventTypeNames,
+}: {
+  booking: Booking;
+  eventTypeNames: ReadonlyMap<string, string>;
+}) {
   return (
     <TableRow>
       <TableCell>{formatDateTime(booking.startAt)}</TableCell>
@@ -62,17 +68,19 @@ function BookingRow({ booking }: { booking: Booking }) {
           </span>
         </div>
       </TableCell>
-      <TableCell>{booking.ruleId}</TableCell>
+      <TableCell>
+        {eventTypeNames.get(booking.ruleId) ?? booking.ruleId}
+      </TableCell>
       <TableCell>{booking.resourceId}</TableCell>
       <TableCell>
         <Badge
-          variant={booking.status === 'confirmed' ? 'default' : 'secondary'}
+          variant={booking.status === "confirmed" ? "default" : "secondary"}
         >
           {booking.status}
         </Badge>
       </TableCell>
       <TableCell className="text-right">
-        {booking.status === 'confirmed' && (
+        {booking.status === "confirmed" && (
           <form action={cancelBookingAction}>
             <input type="hidden" name="id" value={booking.id} />
             <Button type="submit" variant="destructive" size="sm">
@@ -88,10 +96,14 @@ function BookingRow({ booking }: { booking: Booking }) {
 export default async function OverviewPage() {
   await connection();
   const now = new Date();
-  const [bookings, { slots }] = await Promise.all([
-    fetchBookings(now),
-    fetchSlots(),
+  const [bookings, { slots }, eventTypes] = await Promise.all([
+    api.bookings.list({ from: now.toISOString() }),
+    api.slots.list(),
+    api.eventTypes.list(),
   ]);
+  const eventTypeNames = new Map(
+    eventTypes.map((eventType) => [eventType.id, eventType.name]),
+  );
   const stats = summarize(bookings, now);
 
   return (
@@ -134,7 +146,11 @@ export default async function OverviewPage() {
                 </TableRow>
               ) : (
                 bookings.map((booking) => (
-                  <BookingRow key={booking.id} booking={booking} />
+                  <BookingRow
+                    key={booking.id}
+                    booking={booking}
+                    eventTypeNames={eventTypeNames}
+                  />
                 ))
               )}
             </TableBody>

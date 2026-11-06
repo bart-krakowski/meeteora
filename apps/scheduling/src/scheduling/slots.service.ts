@@ -1,19 +1,20 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { generateSlots } from '@tanstack/time';
+import { Inject, Injectable } from "@nestjs/common";
+import { generateSlots } from "@tanstack/time";
 import type {
   GenerateSlotsResult,
   Slot,
   SlotOccupyingEvent,
-} from '@tanstack/time';
-import { and, eq, gt, lt } from 'drizzle-orm';
+} from "@tanstack/time";
+import { and, eq, gt, lt } from "drizzle-orm";
 import {
   DATABASE,
   type Database,
   type DatabaseExecutor,
-} from '../database/database';
-import { bookings } from '../database/schema';
-import { toCivil } from './civil-time';
-import { calendars, resources, slotRules, TIME_ZONE } from './schedule';
+} from "../database/database";
+import { bookings } from "../database/schema";
+import { toCivil } from "./civil-time";
+import { EventTypesService } from "./event-types.service";
+import { calendars, resources, TIME_ZONE } from "./schedule";
 
 const EVENT_PADDING_MS = 24 * 60 * 60 * 1000;
 const SLOT_LOOKUP_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -23,13 +24,16 @@ export class SlotsService {
   @Inject(DATABASE)
   private readonly db: Database;
 
+  @Inject(EventTypesService)
+  private readonly eventTypes: EventTypesService;
+
   async list(
     from: Date,
     to: Date,
     executor: DatabaseExecutor = this.db,
   ): Promise<GenerateSlotsResult> {
     return generateSlots({
-      rules: slotRules,
+      rules: await this.eventTypes.listRules(executor),
       range: { start: toCivil(from, TIME_ZONE), end: toCivil(to, TIME_ZONE) },
       now: toCivil(new Date(), TIME_ZONE),
       timeZone: TIME_ZONE,
@@ -64,7 +68,7 @@ export class SlotsService {
       .from(bookings)
       .where(
         and(
-          eq(bookings.status, 'confirmed'),
+          eq(bookings.status, "confirmed"),
           lt(bookings.startAt, new Date(to.getTime() + EVENT_PADDING_MS)),
           gt(bookings.endAt, new Date(from.getTime() - EVENT_PADDING_MS)),
         ),
