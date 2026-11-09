@@ -4,7 +4,7 @@ import {
   type BookingCancelledEvent,
   type BookingCreatedEvent,
   Events,
-} from '@scheduler/contracts';
+} from '@meeteora/contracts';
 import { NotificationsHub } from './notifications.hub';
 import { toNotification } from './to-notification';
 

@@ -4,8 +4,8 @@ import {
   type AppNotification,
   NOTIFICATION_EVENT,
   NOTIFICATIONS_SNAPSHOT_EVENT,
-} from '@scheduler/contracts';
-import { toast } from '@scheduler/ui/components/sonner';
+} from '@meeteora/contracts';
+import { toast } from '@meeteora/ui/components/sonner';
 import { useRouter } from 'next/navigation';
 import {
   createContext,
@@ -19,7 +19,7 @@ import {
 import { formatDateTime } from '@/lib/format';
 
 const STREAM_URL = '/notifications/stream';
-const STORAGE_KEY = 'scheduler.notifications';
+const STORAGE_KEY = 'meeteora.notifications';
 const MAX_NOTIFICATIONS = 100;
 
 interface Markers {

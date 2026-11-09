@@ -5,7 +5,7 @@ import {
   type EventType,
   type EventTypeIdRequest,
   SchedulingPatterns,
-} from '@scheduler/contracts';
+} from '@meeteora/contracts';
 import { EventTypesService } from './event-types.service';
 
 @Controller()

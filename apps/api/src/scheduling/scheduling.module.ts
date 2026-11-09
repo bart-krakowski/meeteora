@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ClientsModule, Transport } from "@nestjs/microservices";
-import { SCHEDULING_QUEUE } from "@scheduler/contracts";
+import { SCHEDULING_QUEUE } from "@meeteora/contracts";
 import { BookingsController } from "./bookings.controller";
 import { EventTypesController } from "./event-types.controller";
 import { SCHEDULING_SERVICE, SchedulingClient } from "./scheduling.client";

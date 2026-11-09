@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { AppNotification } from '@scheduler/contracts';
+import type { AppNotification } from '@meeteora/contracts';
 import { type Observable, Subject } from 'rxjs';
 
 export const REPLAY_LIMIT = 100;

@@ -11,7 +11,7 @@ import {
   type Database,
   type DatabaseExecutor,
 } from "../database/database";
-import { bookings } from "../database/schema";
+import { bookings } from "@meeteora/db";
 import { toCivil } from "./civil-time";
 import { EventTypesService } from "./event-types.service";
 import { calendars, resources, TIME_ZONE } from "./schedule";

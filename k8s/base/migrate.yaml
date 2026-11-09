@@ -1,8 +1,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: scheduler-migrate
-  namespace: scheduler-saas
+  name: meeteora-migrate
+  namespace: meeteora
 spec:
   ttlSecondsAfterFinished: 3600
   template:
@@ -21,7 +21,7 @@ spec:
               done
       containers:
         - name: migrate
-          image: ghcr.io/scheduler-saas/scheduling:latest
+          image: ghcr.io/meeteora/scheduling:latest
           imagePullPolicy: IfNotPresent
           command: ["node", "dist/database/migrate.js"]
           resources:
@@ -35,17 +35,17 @@ spec:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: scheduler-secrets
+                  name: meeteora-secrets
                   key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: scheduler-secrets
+                  name: meeteora-secrets
                   key: POSTGRES_PASSWORD
             - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
-                  name: scheduler-config
+                  name: meeteora-config
                   key: POSTGRES_DB
             - name: DATABASE_URL
               value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)"

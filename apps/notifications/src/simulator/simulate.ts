@@ -3,7 +3,7 @@ import {
   type Booking,
   Events,
   SCHEDULING_EVENTS_EXCHANGE,
-} from '@scheduler/contracts';
+} from '@meeteora/contracts';
 import { lastValueFrom } from 'rxjs';
 import { cancelled, fakeBooking } from './fake-bookings';
 

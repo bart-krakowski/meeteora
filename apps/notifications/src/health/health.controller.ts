@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import type { HealthResponse } from '@scheduler/contracts';
+import type { HealthResponse } from '@meeteora/contracts';
 
 @Controller('health')
 export class HealthController {

@@ -9,7 +9,7 @@ import {
   ParseUUIDPipe,
   Post,
 } from '@nestjs/common';
-import type { EventType } from '@scheduler/contracts';
+import type { EventType } from '@meeteora/contracts';
 import { SchedulingClient } from './scheduling.client';
 
 interface CreateEventTypeBody {

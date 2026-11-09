@@ -2,7 +2,7 @@ import type {
   AppNotification,
   Booking,
   NotificationKind,
-} from '@scheduler/contracts';
+} from '@meeteora/contracts';
 
 const TITLES: Record<NotificationKind, string> = {
   'booking.created': 'New booking',

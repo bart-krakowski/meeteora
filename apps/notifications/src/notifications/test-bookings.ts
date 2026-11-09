@@ -1,4 +1,4 @@
-import type { Booking } from '@scheduler/contracts';
+import type { Booking } from '@meeteora/contracts';
 
 export function testBooking(id: string): Booking {
   return {

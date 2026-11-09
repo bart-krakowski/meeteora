@@ -18,7 +18,7 @@ import {
   type ListSlotsResponse,
   type RpcError,
   SchedulingPatterns,
-} from "@scheduler/contracts";
+} from "@meeteora/contracts";
 import { firstValueFrom, timeout } from "rxjs";
 
 export const SCHEDULING_SERVICE = Symbol("SCHEDULING_SERVICE");

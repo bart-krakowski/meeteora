@@ -1,8 +1,8 @@
 "use client";
 
-import type { AppNotification } from "@scheduler/contracts";
-import { Button } from "@scheduler/ui/components/button";
-import { ScrollArea } from "@scheduler/ui/components/scroll-area";
+import type { AppNotification } from "@meeteora/contracts";
+import { Button } from "@meeteora/ui/components/button";
+import { ScrollArea } from "@meeteora/ui/components/scroll-area";
 import {
   Popover,
   PopoverContent,
@@ -11,8 +11,8 @@ import {
   PopoverHeader,
   PopoverTitle,
   PopoverTrigger,
-} from "@scheduler/ui/components/popover";
-import { cn } from "@scheduler/ui/lib/utils";
+} from "@meeteora/ui/components/popover";
+import { cn } from "@meeteora/ui/lib/utils";
 import {
   BellIcon,
   CalendarAdd01Icon,

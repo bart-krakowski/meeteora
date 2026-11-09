@@ -38,19 +38,19 @@ import type {
   WorkingCalendar,
 } from '@tanstack/time'
 import type { DragEndEvent, DragMoveEvent, DragStartEvent } from '@dnd-kit/react'
-import { Button } from '@scheduler/ui/components/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@scheduler/ui/components/dialog'
-import { Input } from '@scheduler/ui/components/input'
-import { Label } from '@scheduler/ui/components/label'
-import { Badge } from '@scheduler/ui/components/badge'
+import { Button } from '@meeteora/ui/components/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@meeteora/ui/components/dialog'
+import { Input } from '@meeteora/ui/components/input'
+import { Label } from '@meeteora/ui/components/label'
+import { Badge } from '@meeteora/ui/components/badge'
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from '@scheduler/ui/components/context-menu'
-import { ScrollArea } from '@scheduler/ui/components/scroll-area'
+} from '@meeteora/ui/components/context-menu'
+import { ScrollArea } from '@meeteora/ui/components/scroll-area'
 
 
 

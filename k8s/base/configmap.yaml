@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: scheduler-config
-  namespace: scheduler-saas
+  name: meeteora-config
+  namespace: meeteora
 data:
   API_PORT: "3001"
-  WEB_ORIGIN: "https://scheduler.local"
+  WEB_ORIGIN: "https://meeteora.local"
   API_URL: "http://api:3001"
-  POSTGRES_DB: "scheduler"
+  POSTGRES_DB: "meeteora"
   POSTGRES_HOST: "postgres"
   POSTGRES_PORT: "5432"
   RABBITMQ_HOST: "rabbitmq"

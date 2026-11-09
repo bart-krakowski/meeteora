@@ -1,5 +1,5 @@
-import { Badge } from "@scheduler/ui/components/badge";
-import { Button } from "@scheduler/ui/components/button";
+import { Badge } from "@meeteora/ui/components/badge";
+import { Button } from "@meeteora/ui/components/button";
 import {
   Table,
   TableBody,
@@ -7,7 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@scheduler/ui/components/table";
+} from "@meeteora/ui/components/table";
 import Link from "next/link";
 import { connection } from "next/server";
 import { formatEventDate, formatPrice } from "@/lib/events/format";

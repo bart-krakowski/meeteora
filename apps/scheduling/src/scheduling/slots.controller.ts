@@ -4,7 +4,7 @@ import {
   type ListSlotsRequest,
   type ListSlotsResponse,
   SchedulingPatterns,
-} from '@scheduler/contracts';
+} from '@meeteora/contracts';
 import { parseInstant } from './instant';
 import { SlotsService } from './slots.service';
 

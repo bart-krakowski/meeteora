@@ -3,7 +3,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  transpilePackages: ['@scheduler/ui'],
+  transpilePackages: ['@meeteora/ui'],
   outputFileTracingRoot: path.join(import.meta.dirname, '../../'),
 };
 

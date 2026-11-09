@@ -5,7 +5,7 @@ import type {
   EventType,
   EventTypeIdRequest,
   RpcError,
-} from '@scheduler/contracts';
+} from '@meeteora/contracts';
 import type { SlotRule } from '@tanstack/time';
 import { asc, eq } from 'drizzle-orm';
 import {
@@ -13,7 +13,7 @@ import {
   type Database,
   type DatabaseExecutor,
 } from '../database/database';
-import { eventTypes, organizations } from '../database/schema';
+import { eventTypes, organizations } from '@meeteora/db';
 import { CALENDAR_ID, resources, RULE_DEFAULTS } from './schedule';
 
 const DEFAULT_ORGANIZATION_SLUG = 'default';

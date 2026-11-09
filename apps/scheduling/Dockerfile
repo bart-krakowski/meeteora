@@ -14,6 +14,5 @@ WORKDIR /app
 COPY --from=build /out/node_modules ./node_modules
 COPY --from=build /out/package.json ./package.json
 COPY --from=build /repo/apps/scheduling/dist ./dist
-COPY --from=build /repo/apps/scheduling/drizzle ./drizzle
 USER node
 CMD ["sh", "-c", "node dist/database/migrate.js && node dist/main.js"]

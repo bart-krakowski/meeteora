@@ -1,5 +1,5 @@
 import { Controller, Get, Inject, Query } from '@nestjs/common';
-import type { ListSlotsResponse } from '@scheduler/contracts';
+import type { ListSlotsResponse } from '@meeteora/contracts';
 import { parseDate } from './parse-date';
 import { SchedulingClient } from './scheduling.client';
 

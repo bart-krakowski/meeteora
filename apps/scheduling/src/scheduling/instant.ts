@@ -1,5 +1,5 @@
 import { RpcException } from '@nestjs/microservices';
-import type { RpcError } from '@scheduler/contracts';
+import type { RpcError } from '@meeteora/contracts';
 
 export function parseInstant(value: string): Date {
   const date = new Date(value);

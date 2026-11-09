@@ -8,7 +8,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@scheduler/ui/components/dialog";
+} from "@meeteora/ui/components/dialog";
 import { useMutation } from "@tanstack/react-query";
 import { GeistSerif } from "geist/font/serif";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,6 @@ import {
   formatEventDate,
   formatEventTime,
   formatPrice,
-  initials,
   toIcs,
 } from "@/lib/events/format";
 import type { PublicEvent, RegistrationOutcome } from "@/lib/events/types";
@@ -40,12 +39,20 @@ function readSaved(slug: string): Saved | null {
   }
 }
 
-/** The one action: the Join button, who is going, and the registration modal. */
-export function Registration({ event }: { event: PublicEvent }) {
+/**
+ * The one action: the Register button and its modal. Registration is
+ * remembered on this device and read after hydration.
+ */
+export function Registration({
+  event,
+  className = "",
+}: {
+  event: PublicEvent;
+  className?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [saved, setSaved] = useState<Saved | null>(null);
 
-  // Registration is remembered on this device, read after hydration.
   useEffect(() => setSaved(readSaved(event.slug)), [event.slug]);
 
   const closed = event.status === "closed";
@@ -57,34 +64,29 @@ export function Registration({ event }: { event: PublicEvent }) {
       ? "Registration closed"
       : event.status === "waitlist"
         ? "Join waitlist"
-        : "Join event";
+        : "Register";
 
   return (
-    <div className="mt-6 flex flex-col gap-4 sm:mt-8 sm:flex-row sm:items-center sm:gap-6">
+    <>
       <button
         type="button"
         disabled={closed && !saved}
         onClick={() => setOpen(true)}
-        className={
-          saved
-            ? "group inline-flex h-14 items-center justify-center gap-2 rounded-[6px] border border-foreground bg-transparent px-7 text-[15px] font-medium text-foreground transition-[background-color,transform] hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground active:scale-[0.98] max-sm:w-full"
-            : "group inline-flex h-14 items-center justify-center gap-2.5 rounded-[6px] bg-foreground px-8 text-[15px] font-medium text-background transition-[background-color,transform] hover:bg-foreground/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground max-sm:w-full"
-        }
+        data-variant={saved ? "secondary" : "primary"}
+        className={`ec-btn group ${className}`}
       >
-        {saved && <HugeiconsIcon icon={Tick02Icon} size={16} strokeWidth={2} aria-hidden />}
+        {saved && <HugeiconsIcon icon={Tick02Icon} size={15} strokeWidth={2} aria-hidden />}
         {label}
         {!saved && !closed && (
           <HugeiconsIcon
             icon={ArrowRight02Icon}
-            size={16}
+            size={15}
             strokeWidth={2}
             aria-hidden
-            className="transition-transform duration-200 group-hover:translate-x-0.5"
+            className="ec-btn-arrow"
           />
         )}
       </button>
-
-      <Attendees event={event} />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
@@ -110,49 +112,7 @@ export function Registration({ event }: { event: PublicEvent }) {
           )}
         </DialogContent>
       </Dialog>
-    </div>
-  );
-}
-
-const AVATAR_TONES = [
-  "bg-foreground text-background",
-  "bg-[color-mix(in_oklab,var(--foreground)_72%,var(--background))] text-background",
-  "bg-[color-mix(in_oklab,var(--foreground)_48%,var(--background))] text-foreground",
-  "bg-[color-mix(in_oklab,var(--foreground)_28%,var(--background))] text-foreground",
-  "bg-muted text-foreground",
-];
-
-function Attendees({ event }: { event: PublicEvent }) {
-  const { attendeeCount, spotsLeft, status } = event;
-  const detail =
-    status === "closed"
-      ? "Registration closed"
-      : status === "waitlist"
-        ? "Full · waitlist open"
-        : spotsLeft !== null
-          ? `${spotsLeft} ${spotsLeft === 1 ? "spot" : "spots"} left`
-          : "Open to all";
-
-  return (
-    <div className="flex items-center gap-3">
-      {event.recentAttendees.length > 0 && (
-        <ul aria-hidden className="flex">
-          {event.recentAttendees.map((attendee, index) => (
-            <li
-              key={attendee.id}
-              title={attendee.name}
-              className={`-ml-2 grid size-8 place-items-center rounded-full text-[12px] font-medium ring-2 ring-background first:ml-0 ${AVATAR_TONES[index % AVATAR_TONES.length]}`}
-            >
-              {initials(attendee.name).slice(0, 1)}
-            </li>
-          ))}
-        </ul>
-      )}
-      <p className="text-[14px] leading-[1.35]">
-        <span className="font-medium tabular-nums">{attendeeCount} going</span>
-        <span className="block text-muted-foreground tabular-nums">{detail}</span>
-      </p>
-    </div>
+    </>
   );
 }
 
@@ -293,16 +253,7 @@ function Confirmation({ event, saved }: { event: PublicEvent; saved: Saved }) {
         {!waitlisted && (
           <button
             type="button"
-            onClick={() => {
-              const blob = new Blob([toIcs(event, window.location.href)], {
-                type: "text/calendar",
-              });
-              const link = document.createElement("a");
-              link.href = URL.createObjectURL(blob);
-              link.download = `${event.slug}.ics`;
-              link.click();
-              URL.revokeObjectURL(link.href);
-            }}
+            onClick={() => downloadIcs(event)}
             className="inline-flex h-11 flex-1 items-center justify-center rounded-[6px] border border-foreground/15 text-[14px] font-medium transition-[border-color,background-color,transform] hover:border-foreground/35 hover:bg-muted active:scale-[0.98]"
           >
             Add to calendar
@@ -314,4 +265,14 @@ function Confirmation({ event, saved }: { event: PublicEvent; saved: Saved }) {
       </div>
     </div>
   );
+}
+
+/** Downloads the event as an .ics file. */
+export function downloadIcs(event: PublicEvent) {
+  const blob = new Blob([toIcs(event, window.location.href)], { type: "text/calendar" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `${event.slug}.ics`;
+  link.click();
+  URL.revokeObjectURL(link.href);
 }

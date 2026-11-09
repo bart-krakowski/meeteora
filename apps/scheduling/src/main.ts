@@ -4,7 +4,7 @@ import {
   type AsyncMicroserviceOptions,
   Transport,
 } from '@nestjs/microservices';
-import { SCHEDULING_QUEUE } from '@scheduler/contracts';
+import { SCHEDULING_QUEUE } from '@meeteora/contracts';
 import { AppModule } from './app.module';
 
 async function bootstrap() {

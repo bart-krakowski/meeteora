@@ -3,7 +3,7 @@ import type {
   CreateBookingRequest,
   CreateEventTypeRequest,
   EventType,
-} from "@scheduler/contracts";
+} from "@meeteora/contracts";
 import type { GenerateSlotsResult } from "@tanstack/time";
 import { ApiClient } from "./api-client";
 

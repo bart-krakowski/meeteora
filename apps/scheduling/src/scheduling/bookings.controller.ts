@@ -6,7 +6,7 @@ import {
   type CreateBookingRequest,
   type ListBookingsRequest,
   SchedulingPatterns,
-} from '@scheduler/contracts';
+} from '@meeteora/contracts';
 import { BookingsService } from './bookings.service';
 
 @Controller()

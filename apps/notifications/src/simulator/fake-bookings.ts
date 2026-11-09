@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { Booking } from '@scheduler/contracts';
+import type { Booking } from '@meeteora/contracts';
 
 const ATTENDEES = [
   { name: 'Ada Lovelace', email: 'ada@example.com' },

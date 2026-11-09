@@ -4,7 +4,7 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@scheduler/ui/components/avatar";
+} from "@meeteora/ui/components/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,13 +13,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@scheduler/ui/components/dropdown-menu";
+} from "@meeteora/ui/components/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@scheduler/ui/components/sidebar";
+} from "@meeteora/ui/components/sidebar";
 import {
   BadgeCheckIcon,
   BellIcon,

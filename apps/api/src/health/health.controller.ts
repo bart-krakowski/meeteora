@@ -1,5 +1,5 @@
 import { Controller, Get, Inject } from '@nestjs/common';
-import type { HealthResponse } from '@scheduler/contracts';
+import type { HealthResponse } from '@meeteora/contracts';
 import { SchedulingClient } from '../scheduling/scheduling.client';
 
 @Controller('health')

@@ -1,5 +1,5 @@
 {
-  "extends": "@scheduler/typescript/tsconfig.base.json",
+  "extends": "@meeteora/typescript/tsconfig.base.json",
   "compilerOptions": {
     "declaration": true,
     "outDir": "./dist",

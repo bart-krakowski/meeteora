@@ -9,7 +9,7 @@ import {
   type AppNotification,
   NOTIFICATION_EVENT,
   NOTIFICATIONS_SNAPSHOT_EVENT,
-} from '@scheduler/contracts';
+} from '@meeteora/contracts';
 import {
   concat,
   defer,

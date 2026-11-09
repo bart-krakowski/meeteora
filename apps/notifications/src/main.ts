@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { type RmqOptions, Transport } from '@nestjs/microservices';
-import { SCHEDULING_EVENTS_EXCHANGE } from '@scheduler/contracts';
+import { SCHEDULING_EVENTS_EXCHANGE } from '@meeteora/contracts';
 import { AppModule } from './app.module';
 
 async function bootstrap() {

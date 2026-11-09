@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REGISTRY="${REGISTRY:-ghcr.io/scheduler-saas}"
+REGISTRY="${REGISTRY:-ghcr.io/meeteora}"
 TAG="${TAG:-latest}"
 
 echo "Building images for $REGISTRY:$TAG"

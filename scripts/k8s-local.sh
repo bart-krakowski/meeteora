@@ -3,7 +3,7 @@ set -euo pipefail
 
 REGISTRY="${REGISTRY:-local}"
 TAG="${TAG:-latest}"
-NAMESPACE="${NAMESPACE:-scheduler-saas}"
+NAMESPACE="${NAMESPACE:-meeteora}"
 
 if command -v minikube >/dev/null 2>&1; then
   echo "Using minikube"
@@ -12,8 +12,8 @@ if command -v minikube >/dev/null 2>&1; then
   using_minikube=1
 elif command -v kind >/dev/null 2>&1; then
   echo "Using kind"
-  kind get clusters | grep -q scheduler-saas || kind create cluster --name scheduler-saas
-  kind_cluster=scheduler-saas
+  kind get clusters | grep -q meeteora || kind create cluster --name meeteora
+  kind_cluster=meeteora
 else
   echo "Install minikube or kind first."
   exit 1

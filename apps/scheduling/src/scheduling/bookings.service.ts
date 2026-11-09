@@ -7,7 +7,7 @@ import {
   Events,
   type ListBookingsRequest,
   type RpcError,
-} from "@scheduler/contracts";
+} from "@meeteora/contracts";
 import { and, asc, eq, gte, sql } from "drizzle-orm";
 import { DATABASE, type Database } from "../database/database";
 import {
@@ -15,7 +15,7 @@ import {
   eventTypes,
   organizations,
   outbox,
-} from "../database/schema";
+} from "@meeteora/db";
 import { parseInstant } from "./instant";
 import { SlotsService } from "./slots.service";
 

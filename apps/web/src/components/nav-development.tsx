@@ -8,13 +8,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@scheduler/ui/components/dropdown-menu";
+} from "@meeteora/ui/components/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@scheduler/ui/components/sidebar";
+} from "@meeteora/ui/components/sidebar";
 import {
   CalendarAdd01Icon,
   CalendarRemove01Icon,

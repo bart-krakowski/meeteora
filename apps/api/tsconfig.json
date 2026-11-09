@@ -1,5 +1,5 @@
 {
-  "extends": "@scheduler/typescript/tsconfig.nest.json",
+  "extends": "@meeteora/typescript/tsconfig.nest.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"

@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@scheduler/ui/components/button";
-import { Input } from "@scheduler/ui/components/input";
-import { cn } from "@scheduler/ui/lib/utils";
+import { Button } from "@meeteora/ui/components/button";
+import { Input } from "@meeteora/ui/components/input";
+import { cn } from "@meeteora/ui/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";

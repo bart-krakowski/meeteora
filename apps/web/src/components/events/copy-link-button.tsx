@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@scheduler/ui/components/button';
+import { Button } from '@meeteora/ui/components/button';
 import { Copy01Icon, Tick02Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useEffect, useRef, useState } from 'react';

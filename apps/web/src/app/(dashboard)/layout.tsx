@@ -1,9 +1,9 @@
 import {
   SidebarInset,
   SidebarProvider,
-} from '@scheduler/ui/components/sidebar';
+} from '@meeteora/ui/components/sidebar';
 import type * as React from 'react';
-import { Toaster } from '@scheduler/ui/components/sonner';
+import { Toaster } from '@meeteora/ui/components/sonner';
 import { AppSidebar } from '@/components/app-sidebar';
 import { NotificationsProvider } from '@/components/notifications/notifications-provider';
 import { SiteHeader } from '@/components/site-header';

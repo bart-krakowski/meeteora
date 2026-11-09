@@ -1,4 +1,4 @@
-# scheduler-saas
+# meeteora
 
 Scheduling SaaS built on [TanStack Time](../tanstack/time).
 
@@ -7,6 +7,7 @@ Scheduling SaaS built on [TanStack Time](../tanstack/time).
 - `apps/scheduling` — NestJS RabbitMQ microservice (Drizzle + Postgres), authoritative slot generation via `generateSlots` and booking creation
 - `apps/notifications` — NestJS RabbitMQ worker consuming booking events
 - `packages/contracts` — shared queue names, message patterns, events and payload types
+- `packages/db` — the one shared Postgres database: Drizzle schema, client factory and migrations for every service
 - `vendor/*` — `@tanstack/time` and `@tanstack/react-time` packed from the local repo (not on npm yet)
 
 ## Architecture
@@ -36,9 +37,9 @@ pnpm db:migrate
 pnpm dev
 ```
 
-Web: http://localhost:3000 · API: http://localhost:3001 (`/health`, `GET /slots?from=&to=`, `POST /bookings {"ruleId","start"}`) · RabbitMQ UI: http://localhost:15672 (`scheduler`/`scheduler`)
+Web: http://localhost:3000 · API: http://localhost:3001 (`/health`, `GET /slots?from=&to=`, `POST /bookings {"ruleId","start"}`) · RabbitMQ UI: http://localhost:15672 (`meeteora`/`meeteora`)
 
-`pnpm dev` builds `@scheduler/contracts` once up front. After editing contracts, rerun `pnpm --filter @scheduler/contracts build`.
+`pnpm dev` builds `@meeteora/contracts` once up front. After editing contracts, rerun `pnpm --filter @meeteora/contracts build`.
 
 ## Full stack in Docker
 
@@ -50,7 +51,9 @@ The scheduling service runs migrations on start. Postgres is exposed on host por
 
 ## Database
 
-Edit `apps/scheduling/src/database/schema.ts`, then:
+All services share one Postgres database. Schema, migrations and the client live in `packages/db` (`@meeteora/db`); a service that needs storage depends on it and connects with `DATABASE_URL`. Do not add per-service schemas or migration folders.
+
+Edit `packages/db/src/schema.ts`, then:
 
 ```sh
 pnpm db:generate

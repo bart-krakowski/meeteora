@@ -65,9 +65,9 @@ export function toIcs(event: PublicEvent, url: string) {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Scheduler//Events//EN",
+    "PRODID:-//Meeteora//Events//EN",
     "BEGIN:VEVENT",
-    `UID:${event.slug}@scheduler`,
+    `UID:${event.slug}@meeteora`,
     `DTSTAMP:${icsStamp(new Date().toISOString())}`,
     `DTSTART:${icsStamp(event.startsAt)}`,
     `DTEND:${icsStamp(event.endsAt)}`,
@@ -77,4 +77,22 @@ export function toIcs(event: PublicEvent, url: string) {
     "END:VEVENT",
     "END:VCALENDAR",
   ].join("\r\n");
+}
+
+/** "3 h 30 min" */
+export function formatDuration(event: Pick<PublicEvent, "startsAt" | "endsAt">) {
+  const minutes = Math.round((Date.parse(event.endsAt) - Date.parse(event.startsAt)) / 60_000);
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return [hours && `${hours} h`, rest && `${rest} min`].filter(Boolean).join(" ");
+}
+
+/** "03.12.2026" */
+export function formatDotDate(iso: string, timeZone: string) {
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone,
+  }).format(new Date(iso));
 }

@@ -10,7 +10,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import type { Attendee, Booking } from '@scheduler/contracts';
+import type { Attendee, Booking } from '@meeteora/contracts';
 import { parseDate } from './parse-date';
 import { SchedulingClient } from './scheduling.client';
 

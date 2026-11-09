@@ -55,16 +55,16 @@ jobs:
           echo "$K8S_CA_CERT" | base64 -d > "$RUNNER_TEMP/ca.crt"
           kubectl config set-cluster target --server="$K8S_SERVER" --certificate-authority="$RUNNER_TEMP/ca.crt" --embed-certs=true
           kubectl config set-credentials ci-deployer --token="$K8S_TOKEN"
-          kubectl config set-context target --cluster=target --user=ci-deployer --namespace=scheduler-saas
+          kubectl config set-context target --cluster=target --user=ci-deployer --namespace=meeteora
           kubectl config use-context target
-          kubectl auth can-i patch deployment/api -n scheduler-saas
+          kubectl auth can-i patch deployment/api -n meeteora
       - run: |
           for app in api notifications scheduling web; do
-            kubectl set image deployment/$app $app=${{ env.REGISTRY }}/$app:${{ github.sha }} -n scheduler-saas
+            kubectl set image deployment/$app $app=${{ env.REGISTRY }}/$app:${{ github.sha }} -n meeteora
           done
       - run: |
-          kubectl delete job scheduler-migrate -n scheduler-saas --ignore-not-found
-          kubectl apply -f k8s/base/migrate.yaml -n scheduler-saas
-          kubectl wait --for=condition=complete job/scheduler-migrate -n scheduler-saas --timeout=300s
+          kubectl delete job meeteora-migrate -n meeteora --ignore-not-found
+          kubectl apply -f k8s/base/migrate.yaml -n meeteora
+          kubectl wait --for=condition=complete job/meeteora-migrate -n meeteora --timeout=300s
       - run: |
-          kubectl rollout status deployment/api deployment/notifications deployment/scheduling deployment/web -n scheduler-saas --timeout=300s
+          kubectl rollout status deployment/api deployment/notifications deployment/scheduling deployment/web -n meeteora --timeout=300s

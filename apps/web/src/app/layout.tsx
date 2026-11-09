@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { TooltipProvider } from "@scheduler/ui/components/tooltip";
+import { TooltipProvider } from "@meeteora/ui/components/tooltip";
 import { TRPCReactProvider } from "@/trpc/provider";
 import "./globals.css";
 
@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Scheduler",
+  title: "Meeteora",
   description: "Scheduling SaaS",
 };
 

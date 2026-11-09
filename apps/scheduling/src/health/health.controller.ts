@@ -1,6 +1,6 @@
 import { Controller, Inject } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
-import { type HealthResponse, SchedulingPatterns } from '@scheduler/contracts';
+import { type HealthResponse, SchedulingPatterns } from '@meeteora/contracts';
 import { sql } from 'drizzle-orm';
 import { DATABASE, type Database } from '../database/database';
 

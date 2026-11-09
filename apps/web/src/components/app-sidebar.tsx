@@ -5,7 +5,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-} from "@scheduler/ui/components/sidebar";
+} from "@meeteora/ui/components/sidebar";
 import type * as React from "react";
 import { Logo } from "@/components/logo";
 import { NavDevelopment } from "@/components/nav-development";
@@ -17,7 +17,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <div className="flex items-center justify-between px-2">
-          <Logo className="size-6" />
+          <Logo className="size-8 text-white" />
           <NotificationsPanel />
         </div>
       </SidebarHeader>

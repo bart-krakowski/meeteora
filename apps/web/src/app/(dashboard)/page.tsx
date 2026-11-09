@@ -1,13 +1,13 @@
-import type { Booking } from "@scheduler/contracts";
-import { Badge } from "@scheduler/ui/components/badge";
-import { Button } from "@scheduler/ui/components/button";
+import type { Booking } from "@meeteora/contracts";
+import { Badge } from "@meeteora/ui/components/badge";
+import { Button } from "@meeteora/ui/components/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@scheduler/ui/components/card";
+} from "@meeteora/ui/components/card";
 import {
   Table,
   TableBody,
@@ -15,7 +15,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@scheduler/ui/components/table";
+} from "@meeteora/ui/components/table";
 import { connection } from "next/server";
 import { api } from "@/trpc/server";
 import { formatDateTime, TIME_ZONE } from "@/lib/format";

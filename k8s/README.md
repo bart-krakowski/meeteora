@@ -1,6 +1,6 @@
-# Scheduler SaaS — Kubernetes manifests
+# Meeteora — Kubernetes manifests
 
-Generic manifests to run the scheduler monorepo on Kubernetes.
+Generic manifests to run the meeteora monorepo on Kubernetes.
 
 ## What changed from Docker Compose
 

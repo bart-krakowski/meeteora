@@ -37,6 +37,6 @@ jobs:
           context: .
           file: apps/${{ matrix.app }}/Dockerfile
           push: false
-          tags: scheduler-saas/${{ matrix.app }}:${{ github.sha }}
+          tags: meeteora/${{ matrix.app }}:${{ github.sha }}
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,mode=max,scope=${{ matrix.app }}

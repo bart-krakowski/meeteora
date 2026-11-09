@@ -12,11 +12,11 @@
   },
   "iconLibrary": "hugeicons",
   "aliases": {
-    "components": "@scheduler/ui/components",
-    "utils": "@scheduler/ui/lib/utils",
-    "ui": "@scheduler/ui/components",
-    "lib": "@scheduler/ui/lib",
-    "hooks": "@scheduler/ui/hooks"
+    "components": "@meeteora/ui/components",
+    "utils": "@meeteora/ui/lib/utils",
+    "ui": "@meeteora/ui/components",
+    "lib": "@meeteora/ui/lib",
+    "hooks": "@meeteora/ui/hooks"
   },
   "menuColor": "default",
   "menuAccent": "subtle",
