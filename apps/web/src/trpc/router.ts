@@ -23,6 +23,10 @@ function toTrpcCode(status: number | undefined): TRPCError["code"] {
   switch (status) {
     case 400:
       return "BAD_REQUEST";
+    case 401:
+      return "UNAUTHORIZED";
+    case 403:
+      return "FORBIDDEN";
     case 404:
       return "NOT_FOUND";
     case 409:

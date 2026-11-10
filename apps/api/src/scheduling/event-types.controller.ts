@@ -8,8 +8,10 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import type { EventType } from '@meeteora/contracts';
+import { AuthGuard } from '../auth/auth.guard';
 import { SchedulingClient } from './scheduling.client';
 
 interface CreateEventTypeBody {
@@ -32,6 +34,7 @@ export class EventTypesController {
   }
 
   @Post()
+  @UseGuards(AuthGuard)
   create(@Body() body: CreateEventTypeBody): Promise<EventType> {
     if (typeof body.name !== 'string' || !body.name.trim()) {
       throw new BadRequestException('name must be a non-empty string');
@@ -56,6 +59,7 @@ export class EventTypesController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard)
   remove(@Param('id', new ParseUUIDPipe()) id: string): Promise<EventType> {
     return this.scheduling.deleteEventType({ id });
   }

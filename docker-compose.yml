@@ -44,6 +44,28 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  auth:
+    build:
+      context: .
+      dockerfile: apps/auth/Dockerfile
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-meeteora}:${POSTGRES_PASSWORD:-meeteora}@db:5432/${POSTGRES_DB:-meeteora}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-meeteora}:${RABBITMQ_PASSWORD:-meeteora}@rabbitmq:5672
+      AUTH_PORT: 3003
+      WEB_ORIGIN: http://localhost:3000
+      BETTER_AUTH_URL: http://localhost:3000
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET in .env}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      # Owns no migrations; scheduling runs the shared ones on start.
+      scheduling:
+        condition: service_started
+
   notifications:
     build:
       context: .
@@ -75,11 +97,13 @@ services:
       dockerfile: apps/web/Dockerfile
     environment:
       API_URL: http://api:3001
+      AUTH_URL: http://auth:3003
       NOTIFICATIONS_URL: http://notifications:3002
     ports:
       - '3000:3000'
     depends_on:
       - api
+      - auth
       - notifications
 
 volumes:

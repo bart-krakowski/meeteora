@@ -60,12 +60,7 @@ function NotificationItem({
       ? CalendarRemove01Icon
       : CalendarAdd01Icon;
   return (
-    <li
-      className={cn(
-        "flex gap-3 border-b px-4 py-3 text-sm",
-        unread && "bg-muted/50",
-      )}
-    >
+    <li className={cn("flex gap-3 px-4 py-3 text-sm", unread && "bg-muted/50")}>
       <HugeiconsIcon
         icon={icon}
         strokeWidth={2}
@@ -86,10 +81,7 @@ function NotificationItem({
         </p>
       </div>
       {unread && (
-        <span
-          className="mt-1.5 size-2 shrink-0 rounded-full bg-primary"
-          aria-label="Unread"
-        />
+        <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
       )}
     </li>
   );
@@ -119,8 +111,8 @@ export function NotificationsPanel() {
         <HugeiconsIcon icon={BellIcon} strokeWidth={2} />
         <UnreadBadge count={unreadCount} />
       </PopoverTrigger>
-      <PopoverContent side="right" align="start" className="w-80 gap-0 p-0">
-        <PopoverHeader className="border-b">
+      <PopoverContent side="right" align="start" className="w-80 divide-y">
+        <PopoverHeader>
           <PopoverTitle>Notifications</PopoverTitle>
           <PopoverDescription>
             {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
@@ -132,7 +124,7 @@ export function NotificationsPanel() {
               No notifications yet.
             </p>
           ) : (
-            <ul>
+            <ul className="divide-y">
               {notifications.map((notification) => (
                 <NotificationItem
                   key={notification.id}
@@ -144,7 +136,7 @@ export function NotificationsPanel() {
             </ul>
           )}
         </ScrollArea>
-        <PopoverFooter className="flex-row justify-end border-t">
+        <PopoverFooter className="flex-row justify-end">
           <Button
             variant="ghost"
             size="sm"

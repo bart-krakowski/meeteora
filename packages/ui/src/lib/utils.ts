@@ -1,6 +1,3 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+// Single class-merging helper for the design system and the apps; the
+// generated components import the same `cn` package directly.
+export { cn } from "cn";

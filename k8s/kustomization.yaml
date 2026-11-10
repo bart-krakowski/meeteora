@@ -1,17 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: meeteora
-
+# Generic deployment (local clusters, scripts/k8s-deploy.sh).
+# Cloud-specific variants live in overlays/.
 resources:
-  - base/namespace.yaml
-  - base/configmap.yaml
-  - base/secrets.yaml
-  - base/postgres.yaml
-  - base/rabbitmq.yaml
-  - base/migrate.yaml
-  - base/api.yaml
-  - base/notifications.yaml
-  - base/scheduling.yaml
-  - base/web.yaml
-  - base/ingress.yaml
+  - base

@@ -13,4 +13,7 @@ data:
   RABBITMQ_HOST: "rabbitmq"
   RABBITMQ_PORT: "5672"
   NOTIFICATIONS_PORT: "3002"
+  AUTH_PORT: "3003"
+  AUTH_URL: "http://auth:3003"
+  BETTER_AUTH_URL: "https://meeteora.local"
   NOTIFICATIONS_URL: "http://notifications:3002"

@@ -4,17 +4,14 @@ packages:
   - tooling/*
   - vendor/*
 
-injectWorkspacePackages: true
-
-syncInjectedDepsAfterScripts:
-  - build
+forceLegacyDeploy: true
 
 overrides:
-  '@tanstack/time': workspace:*
-  '@tanstack/react-time': workspace:*
+  "@tanstack/time": workspace:*
+  "@tanstack/react-time": workspace:*
 
 allowBuilds:
-  '@nestjs/core': false
+  "@nestjs/core": false
   esbuild: true
   sharp: true
   unrs-resolver: false

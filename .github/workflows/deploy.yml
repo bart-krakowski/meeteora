@@ -9,13 +9,14 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    # The Oracle Always Free nodes are Ampere (arm64); build natively instead of under QEMU.
+    runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
       packages: write
     strategy:
       matrix:
-        app: [api, notifications, scheduling, web]
+        app: [api, auth, notifications, scheduling, web]
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -28,6 +29,7 @@ jobs:
         with:
           context: .
           file: apps/${{ matrix.app }}/Dockerfile
+          platforms: linux/arm64
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ matrix.app }}:${{ github.sha }}
@@ -43,7 +45,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: azure/setup-kubectl@v4
         with:
-          version: v1.31.0
+          version: latest
       - env:
           K8S_SERVER: ${{ secrets.K8S_SERVER }}
           K8S_CA_CERT: ${{ secrets.K8S_CA_CERT }}
@@ -59,12 +61,13 @@ jobs:
           kubectl config use-context target
           kubectl auth can-i patch deployment/api -n meeteora
       - run: |
-          for app in api notifications scheduling web; do
+          for app in api auth notifications scheduling web; do
             kubectl set image deployment/$app $app=${{ env.REGISTRY }}/$app:${{ github.sha }} -n meeteora
           done
       - run: |
           kubectl delete job meeteora-migrate -n meeteora --ignore-not-found
-          kubectl apply -f k8s/base/migrate.yaml -n meeteora
+          sed 's|ghcr.io/meeteora/scheduling:latest|${{ env.REGISTRY }}/scheduling:${{ github.sha }}|' k8s/base/migrate.yaml \
+            | kubectl apply -n meeteora -f -
           kubectl wait --for=condition=complete job/meeteora-migrate -n meeteora --timeout=300s
       - run: |
-          kubectl rollout status deployment/api deployment/notifications deployment/scheduling deployment/web -n meeteora --timeout=300s
+          kubectl rollout status deployment/api deployment/auth deployment/notifications deployment/scheduling deployment/web -n meeteora --timeout=300s

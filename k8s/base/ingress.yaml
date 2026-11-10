@@ -3,21 +3,14 @@ kind: Ingress
 metadata:
   name: meeteora
   namespace: meeteora
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
   rules:
     - host: meeteora.local
       http:
         paths:
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: api
-                port:
-                  number: 3001
+          # The browser only talks to web: tRPC, the auth proxy and the
+          # notifications stream are all web routes calling the services in-cluster.
           - path: /
             pathType: Prefix
             backend:

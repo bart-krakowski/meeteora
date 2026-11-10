@@ -21,7 +21,7 @@ metadata:
 rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
-    resourceNames: ["api", "notifications", "scheduling", "web"]
+    resourceNames: ["api", "auth", "notifications", "scheduling", "web"]
     verbs: ["get", "patch"]
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets"]

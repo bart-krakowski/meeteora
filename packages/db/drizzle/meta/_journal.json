@@ -43,6 +43,13 @@
       "when": 1793883200000,
       "tag": "0005_seed_default_event_type",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794244144247,
+      "tag": "0006_auth",
+      "breakpoints": true
     }
   ]
 }

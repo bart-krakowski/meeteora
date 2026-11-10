@@ -5,9 +5,19 @@ import type {
   EventType,
 } from "@meeteora/contracts";
 import type { GenerateSlotsResult } from "@tanstack/time";
+import { headers } from "next/headers";
 import { ApiClient } from "./api-client";
 
-const client = new ApiClient(process.env.API_URL ?? "http://localhost:3001");
+/** Forwards the visitor's session cookie so the API can authenticate them. */
+async function forwardCookie(): Promise<Record<string, string>> {
+  const cookie = (await headers()).get("cookie");
+  return cookie ? { cookie } : {};
+}
+
+const client = new ApiClient(
+  process.env.API_URL ?? "http://localhost:3001",
+  forwardCookie,
+);
 
 export const fetchSlots = () => client.get<GenerateSlotsResult>("/slots");
 

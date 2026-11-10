@@ -1,3 +1,4 @@
+export * from './auth-schema';
 import {
   integer,
   jsonb,

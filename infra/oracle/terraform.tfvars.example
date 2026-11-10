@@ -1,0 +1,4 @@
+# cp terraform.tfvars.example terraform.tfvars
+region           = "eu-frankfurt-1"
+compartment_ocid = "ocid1.tenancy.oc1..aaaa"
+# ssh_public_key = "ssh-ed25519 AAAA..."

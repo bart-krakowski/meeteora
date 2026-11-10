@@ -7,6 +7,7 @@ import { Toaster } from '@meeteora/ui/components/sonner';
 import { AppSidebar } from '@/components/app-sidebar';
 import { NotificationsProvider } from '@/components/notifications/notifications-provider';
 import { SiteHeader } from '@/components/site-header';
+import { requireSession } from '@/lib/auth/session';
 import '../calendar.css';
 
 const shellStyle = {
@@ -14,11 +15,16 @@ const shellStyle = {
   '--header-height': 'calc(var(--spacing) * 12)',
 } as React.CSSProperties;
 
-export default function DashboardLayout({ children }: LayoutProps<'/'>) {
+export default async function DashboardLayout({ children }: LayoutProps<'/'>) {
+  const { user } = await requireSession();
+
   return (
     <NotificationsProvider>
       <SidebarProvider style={shellStyle}>
-        <AppSidebar variant="inset" />
+        <AppSidebar
+          variant="inset"
+          user={{ name: user.name, email: user.email, avatar: user.image ?? undefined }}
+        />
         <SidebarInset>
           <SiteHeader />
           <div className="@container/main flex min-h-0 flex-1 flex-col overflow-y-auto bg-background">

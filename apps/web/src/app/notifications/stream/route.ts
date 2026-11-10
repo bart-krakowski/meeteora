@@ -1,7 +1,13 @@
+import { getSession } from '@/lib/auth/session';
+
 const NOTIFICATIONS_URL =
   process.env.NOTIFICATIONS_URL ?? 'http://localhost:3002';
 
 export async function GET(request: Request): Promise<Response> {
+  if (!(await getSession())) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const lastEventId = request.headers.get('last-event-id');
   const upstream = await fetch(`${NOTIFICATIONS_URL}/notifications/stream`, {
     headers: lastEventId ? { 'last-event-id': lastEventId } : undefined,

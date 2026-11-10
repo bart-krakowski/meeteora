@@ -1,0 +1,10 @@
+# Plain-HTTP requests get redirected; HTTPS requests pass through untouched.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https
+  namespace: meeteora
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true

@@ -9,8 +9,10 @@ import {
   ParseUUIDPipe,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import type { Attendee, Booking } from '@meeteora/contracts';
+import { AuthGuard } from '../auth/auth.guard';
 import { parseDate } from './parse-date';
 import { SchedulingClient } from './scheduling.client';
 
@@ -50,17 +52,20 @@ export class BookingsController {
   }
 
   @Get()
+  @UseGuards(AuthGuard)
   list(@Query('from') fromParam?: string): Promise<Array<Booking>> {
     const from = fromParam === undefined ? new Date() : parseDate(fromParam);
     return this.scheduling.listBookings({ from: from.toISOString() });
   }
 
   @Get(':id')
+  @UseGuards(AuthGuard)
   get(@Param('id', new ParseUUIDPipe()) id: string): Promise<Booking> {
     return this.scheduling.getBooking({ id });
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard)
   cancel(@Param('id', new ParseUUIDPipe()) id: string): Promise<Booking> {
     return this.scheduling.cancelBooking({ id });
   }

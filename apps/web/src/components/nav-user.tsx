@@ -29,6 +29,8 @@ import {
   UnfoldMoreIcon,
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth/client";
 
 function initials(name: string): string {
   return name
@@ -50,6 +52,13 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const router = useRouter();
+
+  async function signOut() {
+    await authClient.signOut();
+    router.replace("/sign-in");
+    router.refresh();
+  }
 
   return (
     <SidebarMenu>
@@ -110,19 +119,8 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <HugeiconsIcon icon={SparklesIcon} strokeWidth={2} />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
                 <HugeiconsIcon icon={BadgeCheckIcon} strokeWidth={2} />
                 Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <HugeiconsIcon icon={CreditCardIcon} strokeWidth={2} />
-                Billing
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <HugeiconsIcon icon={BellIcon} strokeWidth={2} />
@@ -130,7 +128,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={signOut}>
               <HugeiconsIcon icon={Logout01Icon} strokeWidth={2} />
               Log out
             </DropdownMenuItem>

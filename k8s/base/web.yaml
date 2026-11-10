@@ -37,6 +37,11 @@ spec:
                 configMapKeyRef:
                   name: meeteora-config
                   key: API_URL
+            - name: AUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: meeteora-config
+                  key: AUTH_URL
             - name: NOTIFICATIONS_URL
               valueFrom:
                 configMapKeyRef:

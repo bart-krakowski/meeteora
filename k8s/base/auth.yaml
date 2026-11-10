@@ -1,0 +1,148 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  namespace: meeteora
+spec:
+  selector:
+    app: auth
+  ports:
+    - port: 3003
+      targetPort: 3003
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  namespace: meeteora
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: auth
+  template:
+    metadata:
+      labels:
+        app: auth
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z postgres 5432; do
+                echo "Waiting for postgres..."
+                sleep 2
+              done
+        - name: wait-for-rabbitmq
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z rabbitmq 5672; do
+                echo "Waiting for rabbitmq..."
+                sleep 2
+              done
+      containers:
+        - name: auth
+          image: ghcr.io/meeteora/auth:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: meeteora-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: meeteora-secrets
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: meeteora-config
+                  key: POSTGRES_DB
+            - name: RABBITMQ_USER
+              valueFrom:
+                secretKeyRef:
+                  name: meeteora-secrets
+                  key: RABBITMQ_USER
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: meeteora-secrets
+                  key: RABBITMQ_PASSWORD
+            - name: DATABASE_URL
+              value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:5432/$(POSTGRES_DB)"
+            - name: RABBITMQ_URL
+              value: "amqp://$(RABBITMQ_USER):$(RABBITMQ_PASSWORD)@rabbitmq:5672"
+            - name: AUTH_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: meeteora-config
+                  key: AUTH_PORT
+            - name: WEB_ORIGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: meeteora-config
+                  key: WEB_ORIGIN
+            - name: BETTER_AUTH_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: meeteora-config
+                  key: BETTER_AUTH_URL
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: meeteora-secrets
+                  key: BETTER_AUTH_SECRET
+            # Social sign-in; a provider stays off while its keys are empty or absent.
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: meeteora-secrets
+                  key: GOOGLE_CLIENT_ID
+                  optional: true
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: meeteora-secrets
+                  key: GOOGLE_CLIENT_SECRET
+                  optional: true
+            - name: APPLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: meeteora-secrets
+                  key: APPLE_CLIENT_ID
+                  optional: true
+            - name: APPLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: meeteora-secrets
+                  key: APPLE_CLIENT_SECRET
+                  optional: true
+          ports:
+            - containerPort: 3003
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

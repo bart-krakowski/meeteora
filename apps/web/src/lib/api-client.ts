@@ -15,7 +15,11 @@ export class ApiError extends Error {
  * Handles base URL, JSON encoding, query params, and uniform error shape.
  */
 export class ApiClient {
-  constructor(private readonly baseUrl: string) {}
+  constructor(
+    private readonly baseUrl: string,
+    /** Extra headers per request, e.g. the caller's cookie for authenticated routes. */
+    private readonly requestHeaders: () => Promise<Record<string, string>> = async () => ({}),
+  ) {}
 
   get<T>(path: string, query?: Record<string, string>): Promise<T> {
     const url = this.url(path);
@@ -44,11 +48,12 @@ export class ApiClient {
     url: URL,
     body?: unknown,
   ): Promise<T> {
+    const headers = await this.requestHeaders();
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
     const response = await fetch(url, {
       method,
       cache: 'no-store',
-      headers:
-        body === undefined ? undefined : { 'Content-Type': 'application/json' },
+      headers,
       body: body === undefined ? undefined : JSON.stringify(body),
     });
     if (!response.ok) {

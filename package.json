@@ -18,7 +18,9 @@
     "db:migrate": "turbo run db:migrate",
     "k8s:build": "sh scripts/k8s-build.sh",
     "k8s:deploy": "sh scripts/k8s-deploy.sh",
-    "k8s:local": "sh scripts/k8s-local.sh"
+    "k8s:local": "sh scripts/k8s-local.sh",
+    "ui:add": "pnpm --filter @meeteora/ui exec shadcn add -c ../../apps/web",
+    "ui:apply": "pnpm --filter @meeteora/ui exec shadcn apply -c ../../apps/web"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

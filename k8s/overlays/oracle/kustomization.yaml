@@ -1,0 +1,105 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Oracle Cloud (OKE, Always Free) on top of the base manifests.
+# Prerequisites (installed by scripts/k8s-oracle.sh): Traefik, cert-manager,
+# and the meeteora-secrets Secret, which is never applied from git here.
+resources:
+  - ../../base
+  - cluster-issuer.yaml
+  - redirect-https.yaml
+
+images:
+  - name: ghcr.io/meeteora/api
+    newName: ghcr.io/bart-krakowski/scheduler/api
+  - name: ghcr.io/meeteora/auth
+    newName: ghcr.io/bart-krakowski/scheduler/auth
+  - name: ghcr.io/meeteora/notifications
+    newName: ghcr.io/bart-krakowski/scheduler/notifications
+  - name: ghcr.io/meeteora/scheduling
+    newName: ghcr.io/bart-krakowski/scheduler/scheduling
+  - name: ghcr.io/meeteora/web
+    newName: ghcr.io/bart-krakowski/scheduler/web
+
+configMapGenerator:
+  - name: oracle-settings
+    namespace: meeteora
+    envs:
+      - settings.env
+    options:
+      disableNameSuffixHash: true
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: oracle-settings
+      fieldPath: data.DOMAIN
+    targets:
+      - select:
+          kind: Ingress
+          name: meeteora
+        fieldPaths:
+          - spec.rules.0.host
+          - spec.tls.0.hosts.0
+  - source:
+      kind: ConfigMap
+      name: oracle-settings
+      fieldPath: data.ORIGIN
+    targets:
+      - select:
+          kind: ConfigMap
+          name: meeteora-config
+        fieldPaths:
+          - data.WEB_ORIGIN
+          - data.BETTER_AUTH_URL
+  - source:
+      kind: ConfigMap
+      name: oracle-settings
+      fieldPath: data.ACME_EMAIL
+    targets:
+      - select:
+          kind: ClusterIssuer
+          name: letsencrypt
+        fieldPaths:
+          - spec.acme.email
+
+patches:
+  # Secrets are created once on the cluster with generated values.
+  - patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: meeteora-secrets
+        namespace: meeteora
+
+  - target:
+      kind: Ingress
+      name: meeteora
+    patch: |-
+      - op: replace
+        path: /spec/ingressClassName
+        value: traefik
+      - op: add
+        path: /metadata/annotations
+        value:
+          cert-manager.io/cluster-issuer: letsencrypt
+          traefik.ingress.kubernetes.io/router.middlewares: meeteora-redirect-https@kubernetescrd
+      - op: add
+        path: /spec/tls
+        value:
+          - hosts: [placeholder]
+            secretName: meeteora-tls
+
+  # OCI block volumes are 50 GB minimum; two of them plus two 50 GB node boot
+  # volumes use the whole Always Free 200 GB.
+  - target:
+      kind: StatefulSet
+      name: postgres|rabbitmq
+    patch: |-
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: oci-bv
+      - op: replace
+        path: /spec/volumeClaimTemplates/0/spec/resources/requests/storage
+        value: 50Gi
