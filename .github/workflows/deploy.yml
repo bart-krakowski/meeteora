@@ -38,6 +38,9 @@ jobs:
           cache-to: type=gha,mode=max,scope=${{ matrix.app }}
 
   deploy:
+    # Skipped until a cluster is wired up: set the repo variable
+    # DEPLOY_ENABLED=true once the K8S_* secrets point at it.
+    if: vars.DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     needs: build-and-push
     environment: production

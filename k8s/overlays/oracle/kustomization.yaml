@@ -9,6 +9,20 @@ resources:
   - cluster-issuer.yaml
   - redirect-https.yaml
 
+# One replica each: the Always Free Ampere allowance is one or two small
+# nodes, and two of everything would request most of a node's CPU.
+replicas:
+  - name: api
+    count: 1
+  - name: auth
+    count: 1
+  - name: notifications
+    count: 1
+  - name: scheduling
+    count: 1
+  - name: web
+    count: 1
+
 images:
   - name: ghcr.io/meeteora/api
     newName: ghcr.io/bart-krakowski/scheduler/api
