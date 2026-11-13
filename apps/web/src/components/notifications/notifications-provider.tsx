@@ -6,6 +6,7 @@ import {
   NOTIFICATIONS_SNAPSHOT_EVENT,
 } from '@meeteora/contracts';
 import { toast } from '@meeteora/ui/components/sonner';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import {
   createContext,
@@ -14,9 +15,11 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { formatDateTime } from '@/lib/format';
+import { useTRPC } from '@/trpc/provider';
 
 const STREAM_URL = '/notifications/stream';
 const STORAGE_KEY = 'meeteora.notifications';
@@ -33,6 +36,8 @@ interface NotificationsContextValue {
   unreadCount: number;
   markAllRead: () => void;
   clear: () => void;
+  /** Event type name for a booking's rule id; the id until names load. */
+  serviceName: (ruleId: string) => string;
 }
 
 const NotificationsContext = createContext<NotificationsContextValue | null>(
@@ -49,8 +54,11 @@ export function useNotifications(): NotificationsContextValue {
   return value;
 }
 
-export function describeNotification({ booking }: AppNotification): string {
-  return `${booking.attendee.name} · ${booking.ruleId} · ${formatDateTime(booking.startAt)}`;
+export function describeNotification(
+  { booking }: AppNotification,
+  serviceName: (ruleId: string) => string = (ruleId) => ruleId,
+): string {
+  return `${booking.attendee.name} · ${serviceName(booking.ruleId)} · ${formatDateTime(booking.startAt)}`;
 }
 
 function readMarkers(): Markers {
@@ -72,6 +80,15 @@ function newestFirst(
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const trpc = useTRPC();
+  const { data: eventTypes } = useQuery(trpc.eventTypes.list.queryOptions());
+  const serviceName = useMemo(() => {
+    const names = new Map(eventTypes?.map(({ id, name }) => [id, name]));
+    return (ruleId: string) => names.get(ruleId) ?? ruleId;
+  }, [eventTypes]);
+  // The stream effect reads names through a ref so it doesn't reconnect.
+  const serviceNameRef = useRef(serviceName);
+  serviceNameRef.current = serviceName;
   const [received, setReceived] = useState<Array<AppNotification>>([]);
   const [markers, setMarkers] = useState<Markers>({
     readAt: '',
@@ -93,7 +110,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
           : newestFirst([notification, ...current]),
       );
       toast(notification.title, {
-        description: describeNotification(notification),
+        description: describeNotification(notification, serviceNameRef.current),
       });
       router.refresh();
     };
@@ -130,11 +147,12 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       notifications,
       isUnread,
       unreadCount: notifications.filter(isUnread).length,
+      serviceName,
       markAllRead: () => updateMarkers((latest) => ({ readAt: latest })),
       clear: () =>
         updateMarkers((latest) => ({ readAt: latest, clearedAt: latest })),
     };
-  }, [received, markers, updateMarkers]);
+  }, [received, markers, updateMarkers, serviceName]);
 
   return (
     <NotificationsContext.Provider value={value}>

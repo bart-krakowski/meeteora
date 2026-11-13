@@ -1,3 +1,4 @@
+import type { Attendee, Booking } from "@meeteora/contracts";
 import {
   BadRequestException,
   Body,
@@ -10,11 +11,10 @@ import {
   Post,
   Query,
   UseGuards,
-} from '@nestjs/common';
-import type { Attendee, Booking } from '@meeteora/contracts';
-import { AuthGuard } from '../auth/auth.guard';
-import { parseDate } from './parse-date';
-import { SchedulingClient } from './scheduling.client';
+} from "@nestjs/common";
+import { AuthGuard } from "../auth/auth.guard";
+import { parseDate } from "./parse-date";
+import { SchedulingClient } from "./scheduling.client";
 
 interface CreateBookingBody {
   ruleId?: unknown;
@@ -24,25 +24,28 @@ interface CreateBookingBody {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function parseAttendee(value: CreateBookingBody['attendee']): Attendee {
-  const name = typeof value?.name === 'string' ? value.name.trim() : '';
-  const email = typeof value?.email === 'string' ? value.email.trim() : '';
-  if (!name) throw new BadRequestException('attendee.name must be a non-empty string');
+function parseAttendee(value: CreateBookingBody["attendee"]): Attendee {
+  const name = typeof value?.name === "string" ? value.name.trim() : "";
+  const email = typeof value?.email === "string" ? value.email.trim() : "";
+  if (!name)
+    throw new BadRequestException("attendee.name must be a non-empty string");
   if (!EMAIL_PATTERN.test(email))
-    throw new BadRequestException('attendee.email must be a valid email');
+    throw new BadRequestException("attendee.email must be a valid email");
   return { name, email };
 }
 
-@Controller('bookings')
+@Controller("bookings")
 export class BookingsController {
-  constructor(@Inject(SchedulingClient) private readonly scheduling: SchedulingClient) {}
+  constructor(
+    @Inject(SchedulingClient) private readonly scheduling: SchedulingClient,
+  ) {}
 
   @Post()
   create(@Body() body: CreateBookingBody): Promise<Booking> {
-    if (typeof body.ruleId !== 'string')
-      throw new BadRequestException('ruleId must be a string');
-    if (typeof body.start !== 'string')
-      throw new BadRequestException('start must be a string');
+    if (typeof body.ruleId !== "string")
+      throw new BadRequestException("ruleId must be a string");
+    if (typeof body.start !== "string")
+      throw new BadRequestException("start must be a string");
     const start = parseDate(body.start);
     return this.scheduling.createBooking({
       ruleId: body.ruleId,
@@ -53,20 +56,20 @@ export class BookingsController {
 
   @Get()
   @UseGuards(AuthGuard)
-  list(@Query('from') fromParam?: string): Promise<Array<Booking>> {
+  list(@Query("from") fromParam?: string): Promise<Array<Booking>> {
     const from = fromParam === undefined ? new Date() : parseDate(fromParam);
     return this.scheduling.listBookings({ from: from.toISOString() });
   }
 
-  @Get(':id')
+  @Get(":id")
   @UseGuards(AuthGuard)
-  get(@Param('id', new ParseUUIDPipe()) id: string): Promise<Booking> {
+  get(@Param("id", new ParseUUIDPipe()) id: string): Promise<Booking> {
     return this.scheduling.getBooking({ id });
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @UseGuards(AuthGuard)
-  cancel(@Param('id', new ParseUUIDPipe()) id: string): Promise<Booking> {
+  cancel(@Param("id", new ParseUUIDPipe()) id: string): Promise<Booking> {
     return this.scheduling.cancelBooking({ id });
   }
 }

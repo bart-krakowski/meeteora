@@ -38,6 +38,20 @@ export function formatTime(iso: string): string {
   return timeFormat.format(new Date(iso));
 }
 
+const shortDateTimeFormat = new Intl.DateTimeFormat("en-GB", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  timeZone: TIME_ZONE,
+});
+
+/** "Mon 16 Nov, 09:00": compact, for dense lists. */
+export function formatShortDateTime(iso: string): string {
+  return shortDateTimeFormat.format(new Date(iso));
+}
+
 const relativeFormat = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
 const RELATIVE_UNITS: Array<[Intl.RelativeTimeFormatUnit, number]> = [

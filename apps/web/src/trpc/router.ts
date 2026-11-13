@@ -5,10 +5,14 @@ import {
   cancelBooking,
   createBooking,
   createEventType,
+  createResource,
   deleteEventType,
+  deleteResource,
   fetchBookings,
   fetchEventTypes,
+  fetchResources,
   fetchSlots,
+  renameResource,
 } from "@/lib/api";
 import {
   getPublicEvent,
@@ -94,6 +98,21 @@ const eventTypes = t.router({
     .mutation(({ input }) => call(() => deleteEventType(input.id))),
 });
 
+const resourceName = z.string().trim().min(1, "Enter a name.").max(80);
+
+const resources = t.router({
+  list: t.procedure.query(() => call(fetchResources)),
+  create: t.procedure
+    .input(z.object({ name: resourceName }))
+    .mutation(({ input }) => call(() => createResource(input.name))),
+  rename: t.procedure
+    .input(z.object({ id: z.string().uuid(), name: resourceName }))
+    .mutation(({ input }) => call(() => renameResource(input.id, input.name))),
+  delete: t.procedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(({ input }) => call(() => deleteResource(input.id))),
+});
+
 const slots = t.router({
   list: t.procedure.query(() => call(fetchSlots)),
 });
@@ -137,6 +156,12 @@ const publicEvents = t.router({
     }),
 });
 
-export const appRouter = t.router({ bookings, eventTypes, slots, publicEvents });
+export const appRouter = t.router({
+  bookings,
+  eventTypes,
+  resources,
+  slots,
+  publicEvents,
+});
 
 export type AppRouter = typeof appRouter;

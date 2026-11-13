@@ -35,6 +35,10 @@ export class ApiClient {
     return this.request('POST', this.url(path), body);
   }
 
+  patch<T>(path: string, body: unknown): Promise<T> {
+    return this.request('PATCH', this.url(path), body);
+  }
+
   delete<T>(path: string): Promise<T> {
     return this.request('DELETE', this.url(path));
   }

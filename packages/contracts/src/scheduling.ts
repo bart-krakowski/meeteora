@@ -10,6 +10,10 @@ export const SchedulingPatterns = {
   listEventTypes: "event-types.list",
   createEventType: "event-types.create",
   deleteEventType: "event-types.delete",
+  listResources: "resources.list",
+  createResource: "resources.create",
+  updateResource: "resources.update",
+  deleteResource: "resources.delete",
 } as const;
 
 export interface ListSlotsRequest {
@@ -64,6 +68,25 @@ export interface CreateEventTypeRequest {
 }
 
 export interface EventTypeIdRequest {
+  id: string;
+}
+
+/** Who or what a booking is held by, e.g. a host. Bookings store its id as `resourceId`. */
+export interface Resource {
+  id: string;
+  name: string;
+}
+
+export interface CreateResourceRequest {
+  name: string;
+}
+
+export interface UpdateResourceRequest {
+  id: string;
+  name: string;
+}
+
+export interface ResourceIdRequest {
   id: string;
 }
 

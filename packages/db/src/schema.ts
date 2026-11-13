@@ -36,6 +36,18 @@ export const eventTypes = pgTable(
   (t) => [unique().on(t.organizationId, t.slug)],
 );
 
+/** Who or what a booking is held by (a host, a room). Slots are offered per resource. */
+export const resources = pgTable("resources", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export const outbox = pgTable("outbox", {
   id: uuid("id").primaryKey().defaultRandom(),
   topic: text("topic").notNull(),

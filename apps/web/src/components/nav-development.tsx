@@ -15,20 +15,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@meeteora/ui/components/sidebar";
-import {
-  CalendarAdd01Icon,
-  CalendarRemove01Icon,
-  EraserIcon,
-  FlaskConicalIcon,
-  UnfoldMoreIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useTransition } from "react";
 import {
   simulateBookingAction,
   simulateCancellationAction,
 } from "@/app/(dashboard)/actions";
 import { useNotifications } from "@/components/notifications/notifications-provider";
+import { CalendarMinusIcon, CalendarPlusIcon, ChevronsUpDownIcon, EraserIcon, FlaskIcon } from "@meeteora/ui/components/icons";
 
 export function NavDevelopment() {
   const { isMobile } = useSidebar();
@@ -54,11 +47,7 @@ export function NavDevelopment() {
             }
           >
             <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted">
-              <HugeiconsIcon
-                icon={FlaskConicalIcon}
-                strokeWidth={2}
-                className="size-4"
-              />
+              <FlaskIcon className="size-4" />
             </span>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">Development</span>
@@ -66,11 +55,7 @@ export function NavDevelopment() {
                 {pending ? "Working…" : "Local simulation tools"}
               </span>
             </div>
-            <HugeiconsIcon
-              icon={UnfoldMoreIcon}
-              strokeWidth={2}
-              className="ml-auto size-4"
-            />
+            <ChevronsUpDownIcon className="ml-auto size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="min-w-56"
@@ -81,11 +66,11 @@ export function NavDevelopment() {
             <DropdownMenuGroup>
               <DropdownMenuLabel>Simulate bookings</DropdownMenuLabel>
               <DropdownMenuItem onClick={simulate(simulateBookingAction)}>
-                <HugeiconsIcon icon={CalendarAdd01Icon} strokeWidth={2} />
+                <CalendarPlusIcon />
                 Book a random slot
               </DropdownMenuItem>
               <DropdownMenuItem onClick={simulate(simulateCancellationAction)}>
-                <HugeiconsIcon icon={CalendarRemove01Icon} strokeWidth={2} />
+                <CalendarMinusIcon />
                 Cancel a random booking
               </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -93,7 +78,7 @@ export function NavDevelopment() {
             <DropdownMenuGroup>
               <DropdownMenuLabel>Notifications</DropdownMenuLabel>
               <DropdownMenuItem onClick={clear}>
-                <HugeiconsIcon icon={EraserIcon} strokeWidth={2} />
+                <EraserIcon />
                 Clear all
               </DropdownMenuItem>
             </DropdownMenuGroup>

@@ -3,6 +3,7 @@ import type {
   CreateBookingRequest,
   CreateEventTypeRequest,
   EventType,
+  Resource,
 } from "@meeteora/contracts";
 import type { GenerateSlotsResult } from "@tanstack/time";
 import { headers } from "next/headers";
@@ -38,3 +39,14 @@ export const createEventType = (input: CreateEventTypeRequest) =>
 
 export const deleteEventType = (id: string) =>
   client.delete<EventType>(`/event-types/${encodeURIComponent(id)}`);
+
+export const fetchResources = () => client.get<Array<Resource>>("/resources");
+
+export const createResource = (name: string) =>
+  client.post<Resource>("/resources", { name });
+
+export const renameResource = (id: string, name: string) =>
+  client.patch<Resource>(`/resources/${encodeURIComponent(id)}`, { name });
+
+export const deleteResource = (id: string) =>
+  client.delete<Resource>(`/resources/${encodeURIComponent(id)}`);

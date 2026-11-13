@@ -1,11 +1,10 @@
-import { CheckmarkBadge01Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { connection } from "next/server";
 import { notFound } from "next/navigation";
 import { BookingForm } from "@/components/booking/booking-form";
 import { Logo } from "@/components/logo";
 import { api } from "@/trpc/server";
 import { TIME_ZONE } from "@/lib/format";
+import { BadgeCheckIcon } from "@meeteora/ui/components/icons";
 
 export default async function BookPage({
   params,
@@ -22,11 +21,7 @@ export default async function BookPage({
   if (booked === "1") {
     return (
       <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
-        <HugeiconsIcon
-          icon={CheckmarkBadge01Icon}
-          strokeWidth={2}
-          className="size-12 text-primary"
-        />
+        <BadgeCheckIcon className="size-12 text-primary" />
         <h1 className="text-xl font-semibold">Booking confirmed</h1>
         <p className="text-sm text-muted-foreground">
           You're booked for {eventType.name}. See you soon.

@@ -1,7 +1,5 @@
 "use client";
 
-import { ArrowRight02Icon, Cancel01Icon, Tick02Icon } from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Dialog,
   DialogClose,
@@ -21,6 +19,7 @@ import {
 } from "@/lib/events/format";
 import type { PublicEvent, RegistrationOutcome } from "@/lib/events/types";
 import { useTRPC } from "@/trpc/provider";
+import { ArrowRightIcon, CheckIcon, CloseIcon } from "@meeteora/ui/components/icons";
 
 interface Saved {
   name: string;
@@ -75,16 +74,10 @@ export function Registration({
         data-variant={saved ? "secondary" : "primary"}
         className={`${buttonClass} ${className}`}
       >
-        {saved && <HugeiconsIcon icon={Tick02Icon} size={15} strokeWidth={2} aria-hidden />}
+        {saved && <CheckIcon size={15} aria-hidden />}
         {label}
         {!saved && !closed && (
-          <HugeiconsIcon
-            icon={ArrowRight02Icon}
-            size={15}
-            strokeWidth={2}
-            aria-hidden
-            className="transition-[translate] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-[3px]"
-          />
+          <ArrowRightIcon size={15} aria-hidden className="transition-[translate] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-[3px]" />
         )}
       </button>
 
@@ -97,7 +90,7 @@ export function Registration({
             aria-label="Close"
             className="absolute top-4 right-4 grid size-8 place-items-center rounded-[6px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-foreground"
           >
-            <HugeiconsIcon icon={Cancel01Icon} size={16} strokeWidth={1.8} />
+            <CloseIcon size={16} />
           </DialogClose>
           {saved ? (
             <Confirmation event={event} saved={saved} />
@@ -247,7 +240,7 @@ function Confirmation({ event, saved }: { event: PublicEvent; saved: Saved }) {
   return (
     <div className="px-6 pt-8 pb-6 sm:px-7 sm:pt-9 sm:pb-7">
       <span className="grid size-11 place-items-center rounded-full border border-foreground">
-        <HugeiconsIcon icon={Tick02Icon} size={20} strokeWidth={1.8} aria-hidden />
+        <CheckIcon size={20} aria-hidden />
       </span>
       <DialogTitle
         className={`${GeistSerif.className} mt-6 text-[34px] leading-[1.02] font-normal tracking-[-0.02em]`}

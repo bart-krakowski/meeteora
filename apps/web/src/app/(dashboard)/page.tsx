@@ -1,25 +1,17 @@
 import type { Booking } from "@meeteora/contracts";
-import { Badge } from "@meeteora/ui/components/badge";
 import { Button } from "@meeteora/ui/components/button";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@meeteora/ui/components/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@meeteora/ui/components/table";
+import Link from "next/link";
 import { connection } from "next/server";
 import { api } from "@/trpc/server";
-import { formatDateTime, TIME_ZONE } from "@/lib/format";
-import { cancelBookingAction } from "./actions";
+import { BookingsTable } from "@/components/bookings/bookings-table";
+import { PageBody, PageHeader } from "@/components/page-header";
+import { TIME_ZONE } from "@/lib/format";
 
 const dayFormat = new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE });
 
@@ -50,64 +42,26 @@ function StatCard({ title, value }: { title: string; value: number }) {
   );
 }
 
-function BookingRow({
-  booking,
-  eventTypeNames,
-}: {
-  booking: Booking;
-  eventTypeNames: ReadonlyMap<string, string>;
-}) {
-  return (
-    <TableRow>
-      <TableCell>{formatDateTime(booking.startAt)}</TableCell>
-      <TableCell>
-        <div className="flex flex-col">
-          <span>{booking.attendee.name}</span>
-          <span className="text-xs text-muted-foreground">
-            {booking.attendee.email}
-          </span>
-        </div>
-      </TableCell>
-      <TableCell>
-        {eventTypeNames.get(booking.ruleId) ?? booking.ruleId}
-      </TableCell>
-      <TableCell>{booking.resourceId}</TableCell>
-      <TableCell>
-        <Badge
-          variant={booking.status === "confirmed" ? "default" : "secondary"}
-        >
-          {booking.status}
-        </Badge>
-      </TableCell>
-      <TableCell className="text-right">
-        {booking.status === "confirmed" && (
-          <form action={cancelBookingAction}>
-            <input type="hidden" name="id" value={booking.id} />
-            <Button type="submit" variant="destructive" size="sm">
-              Cancel
-            </Button>
-          </form>
-        )}
-      </TableCell>
-    </TableRow>
-  );
-}
-
 export default async function OverviewPage() {
   await connection();
   const now = new Date();
-  const [bookings, { slots }, eventTypes] = await Promise.all([
+  const [bookings, { slots }, eventTypes, resources] = await Promise.all([
     api.bookings.list({ from: now.toISOString() }),
     api.slots.list(),
     api.eventTypes.list(),
+    api.resources.list(),
   ]);
   const eventTypeNames = new Map(
     eventTypes.map((eventType) => [eventType.id, eventType.name]),
   );
+  const resourceNames = new Map(
+    resources.map((resource) => [resource.id, resource.name]),
+  );
   const stats = summarize(bookings, now);
 
   return (
-    <div className="flex flex-col gap-4 p-4 md:gap-6 lg:p-6">
+    <PageBody>
+      <PageHeader title="Overview" description="Today's numbers and what's coming up." />
       <section className="grid grid-cols-2 gap-4 @xl/main:grid-cols-4">
         <StatCard title="Upcoming" value={stats.upcoming} />
         <StatCard title="Today" value={stats.today} />
@@ -115,48 +69,31 @@ export default async function OverviewPage() {
         <StatCard title="Open slots (7 days)" value={slots.length} />
       </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Bookings</CardTitle>
-          <CardDescription>
-            Upcoming appointments, {TIME_ZONE} time.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>When</TableHead>
-                <TableHead>Attendee</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Host</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {bookings.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="text-center text-muted-foreground"
-                  >
-                    No bookings yet.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                bookings.map((booking) => (
-                  <BookingRow
-                    key={booking.id}
-                    booking={booking}
-                    eventTypeNames={eventTypeNames}
-                  />
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+      <section className="flex flex-col gap-3">
+        <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <h2 className="font-heading text-base font-medium">Upcoming bookings</h2>
+            <p className="text-sm text-muted-foreground">
+              Confirmed appointments, {TIME_ZONE} time.
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            nativeButton={false}
+            render={<Link href="/bookings" />}
+          >
+            View all
+          </Button>
+        </div>
+        <BookingsTable
+          bookings={bookings.filter((booking) => booking.status === "confirmed")}
+          eventTypeNames={eventTypeNames}
+          resourceNames={resourceNames}
+          now={now}
+          emptyMessage="No upcoming bookings."
+        />
+      </section>
+    </PageBody>
   );
 }

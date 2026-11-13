@@ -7,6 +7,8 @@ import { BookingsService } from "./bookings.service";
 import { EventTypesController } from "./event-types.controller";
 import { EventTypesService } from "./event-types.service";
 import { OutboxRelay, SCHEDULING_EVENTS_CLIENT } from "./outbox.relay";
+import { ResourcesController } from "./resources.controller";
+import { ResourcesService } from "./resources.service";
 import { SlotsController } from "./slots.controller";
 import { SlotsService } from "./slots.service";
 
@@ -29,7 +31,18 @@ import { SlotsService } from "./slots.service";
       },
     ]),
   ],
-  controllers: [SlotsController, BookingsController, EventTypesController],
-  providers: [SlotsService, BookingsService, EventTypesService, OutboxRelay],
+  controllers: [
+    SlotsController,
+    BookingsController,
+    EventTypesController,
+    ResourcesController,
+  ],
+  providers: [
+    SlotsService,
+    BookingsService,
+    EventTypesService,
+    ResourcesService,
+    OutboxRelay,
+  ],
 })
 export class SchedulingModule {}

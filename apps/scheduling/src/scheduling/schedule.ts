@@ -1,5 +1,5 @@
 import { between, compileSchedule, merge, weekday } from "@tanstack/time";
-import type { SlotResource, WorkingCalendar } from "@tanstack/time";
+import type { WorkingCalendar } from "@tanstack/time";
 
 export const TIME_ZONE = "Europe/Warsaw";
 
@@ -25,4 +25,3 @@ export const calendars: Array<WorkingCalendar> = [
   }),
 ];
 
-export const resources: Array<SlotResource> = [{ id: "host-1" }];

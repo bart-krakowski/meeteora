@@ -50,6 +50,20 @@
       "when": 1794244144247,
       "tag": "0006_auth",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794578443948,
+      "tag": "0007_resources",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794578445526,
+      "tag": "0008_seed_default_resource",
+      "breakpoints": true
     }
   ]
 }

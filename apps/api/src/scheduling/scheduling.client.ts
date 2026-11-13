@@ -1,24 +1,28 @@
 import {
-  HttpException,
-  Inject,
-  Injectable,
-  ServiceUnavailableException,
-} from "@nestjs/common";
-import type { ClientProxy } from "@nestjs/microservices";
-import {
   type Booking,
   type BookingIdRequest,
   type CreateBookingRequest,
   type CreateEventTypeRequest,
+  type CreateResourceRequest,
   type EventType,
   type EventTypeIdRequest,
   type HealthResponse,
   type ListBookingsRequest,
   type ListSlotsRequest,
   type ListSlotsResponse,
+  type Resource,
+  type ResourceIdRequest,
   type RpcError,
   SchedulingPatterns,
+  type UpdateResourceRequest,
 } from "@meeteora/contracts";
+import {
+  HttpException,
+  Inject,
+  Injectable,
+  ServiceUnavailableException,
+} from "@nestjs/common";
+import type { ClientProxy } from "@nestjs/microservices";
 import { firstValueFrom, timeout } from "rxjs";
 
 export const SCHEDULING_SERVICE = Symbol("SCHEDULING_SERVICE");
@@ -73,6 +77,22 @@ export class SchedulingClient {
 
   deleteEventType(request: EventTypeIdRequest): Promise<EventType> {
     return this.send(SchedulingPatterns.deleteEventType, request);
+  }
+
+  listResources(): Promise<Array<Resource>> {
+    return this.send(SchedulingPatterns.listResources, {});
+  }
+
+  createResource(request: CreateResourceRequest): Promise<Resource> {
+    return this.send(SchedulingPatterns.createResource, request);
+  }
+
+  updateResource(request: UpdateResourceRequest): Promise<Resource> {
+    return this.send(SchedulingPatterns.updateResource, request);
+  }
+
+  deleteResource(request: ResourceIdRequest): Promise<Resource> {
+    return this.send(SchedulingPatterns.deleteResource, request);
   }
 
   private async send<TResult>(

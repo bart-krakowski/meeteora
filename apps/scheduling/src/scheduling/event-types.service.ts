@@ -14,7 +14,7 @@ import {
   type DatabaseExecutor,
 } from '../database/database';
 import { eventTypes, organizations } from '@meeteora/db';
-import { CALENDAR_ID, resources, RULE_DEFAULTS } from './schedule';
+import { CALENDAR_ID, RULE_DEFAULTS } from './schedule';
 
 const DEFAULT_ORGANIZATION_SLUG = 'default';
 const SLUG_PATTERN = /^[a-z0-9-]+$/;
@@ -41,13 +41,16 @@ function toEventType(row: typeof eventTypes.$inferSelect): EventType {
   };
 }
 
-function toSlotRule(row: typeof eventTypes.$inferSelect): SlotRule {
+function toSlotRule(
+  row: typeof eventTypes.$inferSelect,
+  resourceIds: Array<string>,
+): SlotRule {
   return {
     id: row.id,
     calendarId: CALENDAR_ID,
     duration: row.durationMinutes,
     ...RULE_DEFAULTS,
-    resourceIds: resources.map((resource) => resource.id),
+    resourceIds,
   };
 }
 
@@ -113,12 +116,13 @@ export class EventTypesService {
     return toEventType(row);
   }
 
-  /** Slot rules derived from stored event types (fresh on every call). */
+  /** Slot rules derived from stored event types (fresh on every call); every rule can use every resource. */
   async listRules(
+    resourceIds: Array<string>,
     executor: DatabaseExecutor = this.db,
   ): Promise<Array<SlotRule>> {
     const rows = await executor.select().from(eventTypes);
-    return rows.map(toSlotRule);
+    return rows.map((row) => toSlotRule(row, resourceIds));
   }
 
   private async defaultOrganizationId(

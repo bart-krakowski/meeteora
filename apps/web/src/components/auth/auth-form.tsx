@@ -1,11 +1,5 @@
 "use client";
 
-import {
-  GoogleIcon,
-  ViewIcon,
-  ViewOffSlashIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { Button } from "@meeteora/ui/components/button";
 import { Input } from "@meeteora/ui/components/input";
 import { Label } from "@meeteora/ui/components/label";
@@ -13,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth/client";
+import { EyeIcon, EyeOffIcon, GoogleIcon } from "@meeteora/ui/components/icons";
 
 type Mode = "sign-in" | "sign-up";
 type SocialProvider = "google";
@@ -62,10 +57,7 @@ function PasswordInput({ autoComplete }: { autoComplete: string }) {
         aria-pressed={visible}
         className="absolute right-0.5 text-muted-foreground hover:bg-transparent"
       >
-        <HugeiconsIcon
-          icon={visible ? ViewOffSlashIcon : ViewIcon}
-          strokeWidth={2}
-        />
+        {visible ? <EyeOffIcon /> : <EyeIcon />}
         <span className="sr-only">
           {visible ? "Hide password" : "Show password"}
         </span>
@@ -140,7 +132,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
               disabled={pending !== null}
               onClick={() => signInWith("google")}
             >
-              <HugeiconsIcon icon={GoogleIcon} strokeWidth={2} />
+              <GoogleIcon />
               {copy.socialVerb} with Google
             </Button>
           </div>

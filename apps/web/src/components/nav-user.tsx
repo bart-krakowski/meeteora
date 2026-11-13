@@ -20,17 +20,9 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@meeteora/ui/components/sidebar";
-import {
-  BadgeCheckIcon,
-  BellIcon,
-  CreditCardIcon,
-  Logout01Icon,
-  SparklesIcon,
-  UnfoldMoreIcon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
+import { BadgeCheckIcon, BellIcon, ChevronsUpDownIcon, LogOutIcon } from "@meeteora/ui/components/icons";
 
 function initials(name: string): string {
   return name
@@ -84,11 +76,7 @@ export function NavUser({
                 {user.email}
               </span>
             </div>
-            <HugeiconsIcon
-              icon={UnfoldMoreIcon}
-              strokeWidth={2}
-              className="ml-auto size-4"
-            />
+            <ChevronsUpDownIcon className="ml-auto size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="min-w-56"
@@ -119,17 +107,17 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <HugeiconsIcon icon={BadgeCheckIcon} strokeWidth={2} />
+                <BadgeCheckIcon />
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <HugeiconsIcon icon={BellIcon} strokeWidth={2} />
+                <BellIcon />
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut}>
-              <HugeiconsIcon icon={Logout01Icon} strokeWidth={2} />
+              <LogOutIcon />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

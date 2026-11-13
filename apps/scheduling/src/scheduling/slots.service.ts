@@ -14,7 +14,8 @@ import {
 import { bookings } from "@meeteora/db";
 import { toCivil } from "./civil-time";
 import { EventTypesService } from "./event-types.service";
-import { calendars, resources, TIME_ZONE } from "./schedule";
+import { ResourcesService } from "./resources.service";
+import { calendars, TIME_ZONE } from "./schedule";
 
 const EVENT_PADDING_MS = 24 * 60 * 60 * 1000;
 const SLOT_LOOKUP_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -27,13 +28,20 @@ export class SlotsService {
   @Inject(EventTypesService)
   private readonly eventTypes: EventTypesService;
 
+  @Inject(ResourcesService)
+  private readonly resources: ResourcesService;
+
   async list(
     from: Date,
     to: Date,
     executor: DatabaseExecutor = this.db,
   ): Promise<GenerateSlotsResult> {
+    const resources = await this.resources.listSlotResources(executor);
     return generateSlots({
-      rules: await this.eventTypes.listRules(executor),
+      rules: await this.eventTypes.listRules(
+        resources.map((resource) => resource.id),
+        executor,
+      ),
       range: { start: toCivil(from, TIME_ZONE), end: toCivil(to, TIME_ZONE) },
       now: toCivil(new Date(), TIME_ZONE),
       timeZone: TIME_ZONE,

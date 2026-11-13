@@ -7,7 +7,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@meeteora/ui/components/sidebar";
-import { HugeiconsIcon } from "@hugeicons/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navItems } from "@/components/nav-items";
@@ -25,7 +24,7 @@ export function NavMain() {
                 isActive={pathname === href}
                 render={<Link href={href} />}
               >
-                <HugeiconsIcon icon={Icon} strokeWidth={2} />
+                <Icon />
                 <span>{title}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>

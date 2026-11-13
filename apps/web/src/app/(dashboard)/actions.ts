@@ -26,6 +26,7 @@ export async function cancelBookingAction(formData: FormData) {
   if (typeof id !== "string") throw new Error("Booking id is required");
   await api.bookings.cancel({ id });
   revalidatePath("/");
+  revalidatePath("/bookings");
 }
 
 const FAKE_ATTENDEES = [
@@ -51,6 +52,7 @@ export async function simulateBookingAction() {
     attendee: pick(FAKE_ATTENDEES),
   });
   revalidatePath("/");
+  revalidatePath("/bookings");
   revalidatePath("/calendar");
 }
 
@@ -62,5 +64,6 @@ export async function simulateCancellationAction() {
   if (!booking) return;
   await api.bookings.cancel({ id: booking.id });
   revalidatePath("/");
+  revalidatePath("/bookings");
   revalidatePath("/calendar");
 }
