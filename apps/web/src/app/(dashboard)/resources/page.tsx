@@ -1,6 +1,7 @@
 import { connection } from "next/server";
-import { PageBody } from "@/components/page-header";
-import { type ResourceRow, ResourcesView } from "@/components/resources/resources-view";
+import { PageBody, PageHeader } from "@/components/page-header";
+import { AddResourceDialog } from "@/components/resources/resource-dialogs";
+import { type ResourceRow, ResourcesTable } from "@/components/resources/resources-table";
 import { api } from "@/trpc/server";
 
 export default async function ResourcesPage() {
@@ -16,14 +17,20 @@ export default async function ResourcesPage() {
     if (booking.status !== "confirmed") continue;
     upcoming.set(booking.resourceId, (upcoming.get(booking.resourceId) ?? 0) + 1);
   }
-  const rows: Array<ResourceRow> = resources.map((resource) => ({
-    ...resource,
-    upcoming: upcoming.get(resource.id) ?? 0,
+  const rows: Array<ResourceRow> = resources.map(({ id, name }) => ({
+    id,
+    name,
+    upcoming: upcoming.get(id) ?? 0,
   }));
 
   return (
     <PageBody>
-      <ResourcesView resources={rows} />
+      <PageHeader
+        title="Resources"
+        description="Hosts that bookings are held by. Each is offered Monday to Friday, 9:00 to 17:00, for every event type."
+        actions={<AddResourceDialog />}
+      />
+      <ResourcesTable resources={rows} />
     </PageBody>
   );
 }

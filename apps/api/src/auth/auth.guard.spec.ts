@@ -1,6 +1,7 @@
 import type { AuthSession, GetSessionRequest } from "@meeteora/contracts";
-import { type ExecutionContext, UnauthorizedException } from "@nestjs/common";
-import type { AuthClient } from "./auth.client";
+import { UnauthorizedException } from "@nestjs/common";
+import { ExecutionContextHost } from "@nestjs/core/helpers/execution-context-host";
+import { AuthClient } from "./auth.client";
 import { AuthGuard } from "./auth.guard";
 
 const session: AuthSession = {
@@ -18,21 +19,26 @@ function contextFor(headers: Record<string, string>) {
   const request: { headers: Record<string, string>; auth?: AuthSession } = {
     headers,
   };
-  const context = {
-    switchToHttp: () => ({ getRequest: () => request }),
-  } as unknown as ExecutionContext;
+  const context = new ExecutionContextHost([request]);
   return { context, request };
 }
 
+class FakeAuthClient extends AuthClient {
+  readonly calls: Array<GetSessionRequest> = [];
+
+  constructor(private readonly result: AuthSession | null) {
+    super();
+  }
+
+  override async getSession(request: GetSessionRequest) {
+    this.calls.push(request);
+    return this.result;
+  }
+}
+
 function guardReturning(result: AuthSession | null) {
-  const calls: Array<GetSessionRequest> = [];
-  const client = {
-    getSession: async (request: GetSessionRequest) => {
-      calls.push(request);
-      return result;
-    },
-  } as AuthClient;
-  return { guard: new AuthGuard(client), calls };
+  const client = new FakeAuthClient(result);
+  return { guard: new AuthGuard(client), calls: client.calls };
 }
 
 describe("AuthGuard", () => {
