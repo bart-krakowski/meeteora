@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { useTRPC } from "@/trpc/provider";
+import { formText } from "@/lib/form-data";
 
 export interface ResourceRow extends Resource {
   /** Confirmed bookings that haven't started yet. */
@@ -62,9 +63,7 @@ export function ResourcesView({ resources }: { resources: Array<ResourceRow> }) 
                 className="flex max-w-sm gap-2"
                 onSubmit={(event) => {
                   event.preventDefault();
-                  const name = String(
-                    new FormData(event.currentTarget).get("name") ?? "",
-                  );
+                  const name = formText(new FormData(event.currentTarget), "name");
                   renameResource({ id: resource.id, name });
                 }}
               >
@@ -144,7 +143,7 @@ export function ResourcesView({ resources }: { resources: Array<ResourceRow> }) 
             onSubmit={(event) => {
               event.preventDefault();
               const form = event.currentTarget;
-              const name = String(new FormData(form).get("name") ?? "");
+              const name = formText(new FormData(form), "name");
               create.mutate({ name }, { onSuccess: () => form.reset() });
             }}
           >

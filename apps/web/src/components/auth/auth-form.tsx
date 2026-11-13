@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth/client";
 import { EyeIcon, EyeOffIcon, GoogleIcon } from "@meeteora/ui/components/icons";
+import { formText } from "@/lib/form-data";
 
 type Mode = "sign-in" | "sign-up";
 type SocialProvider = "google";
@@ -93,15 +94,15 @@ export function AuthForm({ mode }: { mode: Mode }) {
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    const email = String(data.get("email") ?? "");
-    const password = String(data.get("password") ?? "");
+    const email = formText(data, "email");
+    const password = formText(data, "password");
 
     setPending("email");
     setError(null);
     const { error: authError } =
       mode === "sign-up"
         ? await authClient.signUp.email({
-            name: String(data.get("name") ?? ""),
+            name: formText(data, "name"),
             email,
             password,
           })

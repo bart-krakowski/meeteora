@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { dayKey, formatDayHeading, formatTime } from "@/lib/format";
 import { useTRPC } from "@/trpc/provider";
+import { formText } from "@/lib/form-data";
 
 export interface BookableSlot {
   start: string;
@@ -51,8 +52,8 @@ export function BookingForm({
           ruleId,
           start: selected,
           attendee: {
-            name: String(data.get("name") ?? ""),
-            email: String(data.get("email") ?? ""),
+            name: formText(data, "name"),
+            email: formText(data, "email"),
           },
         });
       }}

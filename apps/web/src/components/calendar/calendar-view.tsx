@@ -1564,7 +1564,7 @@ export function CalendarView() {
     newEnd: string
   } | null>(null)
   const [overlapMode, setOverlapMode] = useState<OverlapMode>('columns')
-  const [overlayCalendarIds, setOverlayCalendarIds] = useState<Array<string>>(['chinese'])
+  const [overlayCalendarIds] = useState<Array<string>>(['chinese'])
   const [visibleCategoryIds, setVisibleCategoryIds] = useState(
     () => new Set(eventCategories.map((category) => category.id)),
   )
@@ -1651,11 +1651,6 @@ export function CalendarView() {
     )
   }, [setEventFilter, visibleCategoryIds])
 
-  const toggleOverlayCalendar = (calendarId: string) => {
-    setOverlayCalendarIds((prev) =>
-      prev.includes(calendarId) ? prev.filter((id) => id !== calendarId) : [...prev, calendarId],
-    )
-  }
 
   const toggleCategory = (categoryId: string) => {
     setVisibleCategoryIds((prev) => {

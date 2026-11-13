@@ -20,6 +20,7 @@ import {
 import type { PublicEvent, RegistrationOutcome } from "@/lib/events/types";
 import { useTRPC } from "@/trpc/provider";
 import { ArrowRightIcon, CheckIcon, CloseIcon } from "@meeteora/ui/components/icons";
+import { formText } from "@/lib/form-data";
 
 interface Saved {
   name: string;
@@ -156,8 +157,8 @@ function RegistrationForm({
         const data = new FormData(formEvent.currentTarget);
         register.mutate({
           slug: event.slug,
-          name: String(data.get("name") ?? ""),
-          email: String(data.get("email") ?? ""),
+          name: formText(data, "name"),
+          email: formText(data, "email"),
         });
       }}
     >
