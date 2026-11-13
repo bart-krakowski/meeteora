@@ -73,7 +73,7 @@ export function Registration({
         disabled={closed && !saved}
         onClick={() => setOpen(true)}
         data-variant={saved ? "secondary" : "primary"}
-        className={`ec-btn group ${className}`}
+        className={`${buttonClass} ${className}`}
       >
         {saved && <HugeiconsIcon icon={Tick02Icon} size={15} strokeWidth={2} aria-hidden />}
         {label}
@@ -83,7 +83,7 @@ export function Registration({
             size={15}
             strokeWidth={2}
             aria-hidden
-            className="ec-btn-arrow"
+            className="transition-[translate] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-[3px]"
           />
         )}
       </button>
@@ -115,6 +115,17 @@ export function Registration({
     </>
   );
 }
+
+/** Primary: solid off-white. Secondary (already registered): hairline. */
+const buttonClass = [
+  "group inline-flex min-h-[46px] cursor-pointer items-center justify-center gap-2.5 rounded-[8px] border border-transparent px-[18px] font-sans text-[14.5px] font-medium tracking-[-0.005em] whitespace-nowrap",
+  "transition-[background-color,border-color,translate,scale,box-shadow] duration-250 ease-[cubic-bezier(0.16,1,0.3,1)] @max-[760px]:px-3",
+  "data-[variant=primary]:enabled:bg-foreground data-[variant=primary]:enabled:text-background",
+  "data-[variant=primary]:enabled:hover:-translate-y-px data-[variant=primary]:enabled:hover:bg-foreground/90 data-[variant=primary]:enabled:hover:shadow-[0_10px_24px_-12px] shadow-foreground/35",
+  "data-[variant=secondary]:border-foreground/20 data-[variant=secondary]:text-foreground data-[variant=secondary]:hover:border-foreground/50",
+  "enabled:active:translate-y-0 enabled:active:scale-[0.98]",
+  "disabled:cursor-not-allowed disabled:border-border disabled:text-muted-foreground",
+].join(" ");
 
 const inputClass =
   "h-11 w-full rounded-[6px] border border-foreground/15 bg-transparent px-3 text-[15px] text-foreground outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground/70 hover:border-foreground/30 focus:border-foreground focus:ring-3 focus:ring-foreground/10 aria-invalid:border-foreground";

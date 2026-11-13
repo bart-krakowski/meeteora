@@ -10,7 +10,6 @@ import {
 } from "@/lib/events/format";
 import type { PublicEvent } from "@/lib/events/types";
 import { EventCard, type CardText } from "./event-card";
-import "./event-card.css";
 
 /**
  * The public event page: one business card on a dark ground, shown front
@@ -46,7 +45,15 @@ export function EventInvitation({ event, url }: { event: PublicEvent; url: strin
   };
 
   return (
-    <main className="ec-page">
+    <main
+      className={[
+        "relative isolate flex-1 min-h-dvh overflow-hidden bg-background font-sans text-foreground antialiased",
+        "selection:bg-foreground selection:text-background",
+        "[&_:is(button,a):focus-visible]:outline-2 [&_:is(button,a):focus-visible]:outline-offset-3 [&_:is(button,a):focus-visible]:outline-foreground",
+        // Ground: one soft blurred greyscale form.
+        "before:fixed before:top-1/2 before:left-1/2 before:-z-2 before:h-[46vmax] before:w-[70vmax] before:-translate-1/2 before:-rotate-12 before:rounded-full before:bg-muted before:opacity-50 before:blur-[90px]",
+      ].join(" ")}
+    >
       <EventCard
         event={event}
         text={text}
