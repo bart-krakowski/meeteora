@@ -26,15 +26,15 @@ replicas:
 
 images:
   - name: ghcr.io/meeteora/api
-    newName: ghcr.io/bart-krakowski/scheduler/api
+    newName: ghcr.io/bart-krakowski/meeteora/api
   - name: ghcr.io/meeteora/auth
-    newName: ghcr.io/bart-krakowski/scheduler/auth
+    newName: ghcr.io/bart-krakowski/meeteora/auth
   - name: ghcr.io/meeteora/notifications
-    newName: ghcr.io/bart-krakowski/scheduler/notifications
+    newName: ghcr.io/bart-krakowski/meeteora/notifications
   - name: ghcr.io/meeteora/scheduling
-    newName: ghcr.io/bart-krakowski/scheduler/scheduling
+    newName: ghcr.io/bart-krakowski/meeteora/scheduling
   - name: ghcr.io/meeteora/web
-    newName: ghcr.io/bart-krakowski/scheduler/web
+    newName: ghcr.io/bart-krakowski/meeteora/web
 
 configMapGenerator:
   - name: oracle-settings

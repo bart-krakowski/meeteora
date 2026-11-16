@@ -58,16 +58,26 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          # rabbitmq-diagnostics boots an Erlang VM per call: several seconds
+          # on a small node, far over the 1 s default timeout.
+          startupProbe:
+            exec:
+              command: ["rabbitmq-diagnostics", "-q", "ping"]
+            periodSeconds: 10
+            timeoutSeconds: 15
+            failureThreshold: 30
           livenessProbe:
             exec:
               command: ["rabbitmq-diagnostics", "-q", "ping"]
-            initialDelaySeconds: 30
-            periodSeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 15
+            failureThreshold: 3
           readinessProbe:
             exec:
-              command: ["rabbitmq-diagnostics", "-q", "ping"]
-            initialDelaySeconds: 10
-            periodSeconds: 5
+              command: ["rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+            periodSeconds: 10
+            timeoutSeconds: 15
+            failureThreshold: 3
   volumeClaimTemplates:
     - metadata:
         name: data
