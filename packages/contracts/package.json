@@ -18,6 +18,7 @@
     "build": "esbuild src/index.ts --bundle --format=esm --outfile=dist/index.js --external:@tanstack/time && tsc -p tsconfig.json --emitDeclarationOnly",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint .",
+    "lint:fix": "oxlint --fix --fix-suggestions --fix-dangerously .",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check ."
   },

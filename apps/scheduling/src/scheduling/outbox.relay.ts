@@ -65,6 +65,8 @@ export class OutboxRelay implements OnModuleInit, OnModuleDestroy {
         const done: Array<string> = [];
         for (const row of rows) {
           try {
+            // One at a time, in order; parallel publishing could reorder events.
+            // oxlint-disable-next-line eslint/no-await-in-loop
             await lastValueFrom(this.events.emit(row.topic, row.payload), {
               defaultValue: undefined,
             });

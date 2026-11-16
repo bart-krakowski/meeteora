@@ -108,8 +108,12 @@ function seed(): Map<string, StoredEvent> {
   return new Map(events.map((event) => [event.slug, event]));
 }
 
-const globalStore = globalThis as { publicEventStore?: Map<string, StoredEvent> };
-const store = (globalStore.publicEventStore ??= seed());
+declare global {
+  // Survives dev hot reloads, so registrations are not lost on every edit.
+  var publicEventStore: Map<string, StoredEvent> | undefined;
+}
+
+const store = (globalThis.publicEventStore ??= seed());
 
 function statusOf(event: StoredEvent, now: Date): RegistrationStatus {
   const closes = Math.min(

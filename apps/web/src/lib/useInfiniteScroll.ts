@@ -124,7 +124,7 @@ export function useInfiniteScroll({
   }, [root])
 
   useEffect(() => {
-    if (disabled) return
+    if (disabled) return undefined
 
     // Capture the root element synchronously during effect setup.
     // DOM refs are stable after mount so this is safe.

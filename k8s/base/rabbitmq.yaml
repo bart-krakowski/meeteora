@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: rabbitmq
-          image: rabbitmq:4-management-alpine
+          image: docker.io/library/rabbitmq:4-management-alpine
           ports:
             - containerPort: 5672
             - containerPort: 15672

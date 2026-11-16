@@ -14,12 +14,12 @@ export class BookingEventsController {
     @Inject(NotificationsHub) private readonly hub: NotificationsHub,
   ) {}
 
-  @EventPattern<string>(Events.bookingCreated)
+  @EventPattern(Events.bookingCreated)
   onBookingCreated(@Payload() booking: BookingCreatedEvent): void {
     this.hub.publish(toNotification('booking.created', booking));
   }
 
-  @EventPattern<string>(Events.bookingCancelled)
+  @EventPattern(Events.bookingCancelled)
   onBookingCancelled(@Payload() booking: BookingCancelledEvent): void {
     this.hub.publish(toNotification('booking.cancelled', booking));
   }

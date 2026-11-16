@@ -4,12 +4,18 @@ import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { AlertIcon, CircleCheckIcon, InfoIcon, LoaderIcon, XCircleIcon } from "@meeteora/ui/components/icons"
 
+const TOASTER_THEMES = ["light", "dark", "system"] as const
+
+function toasterTheme(theme: string): ToasterProps["theme"] {
+  return TOASTER_THEMES.find((option) => option === theme) ?? "system"
+}
+
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
 
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme={toasterTheme(theme)}
       className="toaster group"
       icons={{
         success: (
@@ -34,7 +40,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
           "--border-radius": "var(--radius)",
-        } as React.CSSProperties
+        }
       }
       toastOptions={{
         classNames: {

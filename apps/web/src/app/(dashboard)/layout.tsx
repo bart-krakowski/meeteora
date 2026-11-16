@@ -10,10 +10,10 @@ import { SiteHeader } from '@/components/site-header';
 import { requireSession } from '@/lib/auth/session';
 import '../calendar.css';
 
-const shellStyle = {
+const shellStyle: React.CSSProperties = {
   '--sidebar-width': 'calc(var(--spacing) * 64)',
   '--header-height': 'calc(var(--spacing) * 12)',
-} as React.CSSProperties;
+};
 
 export default async function DashboardLayout({ children }: LayoutProps<'/'>) {
   const { user } = await requireSession();

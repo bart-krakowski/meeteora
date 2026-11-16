@@ -27,6 +27,8 @@ const VIEWS = {
 
 type View = keyof typeof VIEWS;
 
+const VIEW_ORDER: ReadonlyArray<View> = ["upcoming", "past", "cancelled"];
+
 const isView = (value: unknown): value is View =>
   typeof value === "string" && value in VIEWS;
 
@@ -39,15 +41,15 @@ function split(bookings: Array<Booking>, now: Date): Record<View, Array<Booking>
   const nowIso = now.toISOString();
   const confirmed = bookings.filter((booking) => booking.status === "confirmed");
   return {
-    upcoming: confirmed.filter((booking) => booking.startAt >= nowIso).sort(byStart),
+    upcoming: confirmed.filter((booking) => booking.startAt >= nowIso).toSorted(byStart),
     past: confirmed
       .filter((booking) => booking.startAt < nowIso)
-      .sort(byStart)
-      .reverse(),
+      .toSorted(byStart)
+      .toReversed(),
     cancelled: bookings
       .filter((booking) => booking.status !== "confirmed")
-      .sort(byStart)
-      .reverse(),
+      .toSorted(byStart)
+      .toReversed(),
   };
 }
 
@@ -78,7 +80,7 @@ export default async function BookingsPage({ searchParams }: PageProps<"/booking
       />
       <div className="flex flex-col gap-3">
         <nav aria-label="Booking views" className="flex flex-wrap gap-1">
-          {(Object.keys(VIEWS) as Array<View>).map((key) => (
+          {VIEW_ORDER.map((key) => (
             <Button
               key={key}
               nativeButton={false}

@@ -15,7 +15,7 @@ spec:
     spec:
       initContainers:
         - name: wait-for-postgres
-          image: busybox:1.37
+          image: docker.io/library/busybox:1.37
           command:
             - sh
             - -c
@@ -25,7 +25,7 @@ spec:
                 sleep 2
               done
         - name: wait-for-rabbitmq
-          image: busybox:1.37
+          image: docker.io/library/busybox:1.37
           command:
             - sh
             - -c

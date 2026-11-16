@@ -20,6 +20,12 @@ const DEFAULT_ORGANIZATION_SLUG = 'default';
 const SLUG_PATTERN = /^[a-z0-9-]+$/;
 const PG_UNIQUE_VIOLATION = '23505';
 
+const isUniqueViolation = (error: unknown): boolean =>
+  typeof error === 'object' &&
+  error !== null &&
+  'code' in error &&
+  error.code === PG_UNIQUE_VIOLATION;
+
 function rpcError(status: number, message: string): RpcException {
   return new RpcException({ status, message } satisfies RpcError);
 }
@@ -100,7 +106,7 @@ export class EventTypesService {
         .returning();
       return toEventType(row);
     } catch (error) {
-      if ((error as { code?: string }).code === PG_UNIQUE_VIOLATION) {
+      if (isUniqueViolation(error)) {
         throw rpcError(409, `Event type slug is taken: ${finalSlug}`);
       }
       throw error;

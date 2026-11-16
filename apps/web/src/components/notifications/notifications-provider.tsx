@@ -74,7 +74,7 @@ function newestFirst(
   notifications: Array<AppNotification>,
 ): Array<AppNotification> {
   return [...notifications]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, MAX_NOTIFICATIONS);
 }
 
@@ -126,9 +126,9 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const updateMarkers = useCallback(
     (update: (latest: string) => Partial<Markers>) => {
       setMarkers((current) => {
-        const latest = [new Date().toISOString(), received[0]?.createdAt ?? '']
-          .sort()
-          .at(-1) as string;
+        const now = new Date().toISOString();
+        const newest = received[0]?.createdAt ?? '';
+        const latest = newest > now ? newest : now;
         const next = { ...current, ...update(latest) };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
         return next;

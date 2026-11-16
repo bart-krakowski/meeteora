@@ -16,6 +16,7 @@
     "start:prod": "node dist/main.js",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint .",
+    "lint:fix": "oxlint --fix --fix-suggestions --fix-dangerously .",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",

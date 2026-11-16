@@ -33,7 +33,9 @@ const storageKey = (slug: string) => `invite:${slug}`;
 function readSaved(slug: string): Saved | null {
   try {
     const raw = window.localStorage.getItem(storageKey(slug));
-    return raw ? (JSON.parse(raw) as Saved) : null;
+    if (!raw) return null;
+    const saved: Saved = JSON.parse(raw);
+    return saved;
   } catch {
     return null;
   }

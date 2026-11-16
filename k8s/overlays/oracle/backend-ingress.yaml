@@ -1,0 +1,38 @@
+# Public addresses for the services a web app hosted elsewhere (Vercel) calls
+# server-side. Every route still checks the session cookie itself.
+# Hosts are <service>.<DOMAIN>; kustomization.yaml fills in DOMAIN.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: meeteora-backend
+  namespace: meeteora
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    traefik.ingress.kubernetes.io/router.middlewares: meeteora-redirect-https@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: [auth.DOMAIN, api.DOMAIN, notify.DOMAIN]
+      secretName: meeteora-backend-tls
+  rules:
+    - host: auth.DOMAIN
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: auth, port: { number: 3003 } }
+    - host: api.DOMAIN
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: api, port: { number: 3001 } }
+    - host: notify.DOMAIN
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service: { name: notifications, port: { number: 3002 } }

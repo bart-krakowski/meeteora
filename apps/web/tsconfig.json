@@ -19,6 +19,7 @@
   },
   "include": [
     "next-env.d.ts",
+    "../../packages/ui/src/css-variables.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",

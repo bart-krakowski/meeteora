@@ -66,6 +66,7 @@ export class ApiClient {
         `${method} ${url.pathname} failed: ${response.status}`,
       );
     }
-    return response.json() as Promise<T>;
+    const data: T = await response.json();
+    return data;
   }
 }

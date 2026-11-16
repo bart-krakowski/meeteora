@@ -30,6 +30,8 @@ export interface DataTableColumnMeta {
   className?: string;
 }
 
+const columnMeta: DataTableColumnMeta = {};
+
 export const dataTableFeatures = tableFeatures({
   rowSortingFeature,
   sortedRowModel: createSortedRowModel(),
@@ -39,16 +41,12 @@ export const dataTableFeatures = tableFeatures({
     datetime: sortFn_datetime,
     text: sortFn_text,
   },
-  columnMeta: {} as DataTableColumnMeta,
+  columnMeta,
 });
 
 export type DataTableFeatures = typeof dataTableFeatures;
 
-export type DataTableColumn<TData extends RowData> = ColumnDef<
-  DataTableFeatures,
-  TData,
-  unknown
->;
+export type DataTableColumn<TData extends RowData> = ColumnDef<DataTableFeatures, TData>;
 
 export function dataTableColumns<TData extends RowData>() {
   return createColumnHelper<DataTableFeatures, TData>();

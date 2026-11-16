@@ -178,6 +178,23 @@ type EventDragData = {
 
 type DayDropData = { isoDate: string }
 
+const isRecord = (data: unknown): data is Record<string, unknown> =>
+  typeof data === 'object' && data !== null
+
+const isEventDragData = (data: unknown): data is EventDragData =>
+  isRecord(data) && 'event' in data && typeof data.originalStart === 'string'
+
+const isDayDropData = (data: unknown): data is DayDropData =>
+  isRecord(data) && typeof data.isoDate === 'string'
+
+function dropDay(data: unknown): string | undefined {
+  return isDayDropData(data) ? data.isoDate : undefined
+}
+
+function eventDragSource(data: unknown): EventDragData | undefined {
+  return isEventDragData(data) ? data : undefined
+}
+
 type DragTimePreview = { eventId: string; start: string; end: string }
 
 const DRAG_GROUP_ATTRIBUTE = 'data-drag-group'
@@ -277,6 +294,8 @@ const overlapModes = {
 } satisfies Record<string, OverlapStrategy | LayoutStrategyFn>
 
 type OverlapMode = keyof typeof overlapModes
+
+const OVERLAP_MODE_ORDER: ReadonlyArray<OverlapMode> = ['columns', 'expand', 'cascade', 'focus']
 
 const overlapModeLabels: Record<OverlapMode, string> = {
   columns: 'Side by side',
@@ -412,7 +431,7 @@ function eventClassOf(event: DemoEvent): string {
   return categoryById.get(event.categoryId)?.eventClass ?? FALLBACK_EVENT_CLASS
 }
 
-interface DemoEvent extends Event<Resource> {
+interface DemoEvent extends Event {
   categoryId: string
 }
 
@@ -883,7 +902,12 @@ function EventModal({
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
                     value={field.state.value}
                     onBlur={field.handleBlur}
-                    onChange={(e) => field.handleChange(e.target.value as RecurrenceEditScope)}
+                    onChange={(e) => {
+                      const scope = recurrenceEditScopeOptions.find(
+                        (opt) => opt.value === e.target.value,
+                      )
+                      if (scope) field.handleChange(scope.value)
+                    }}
                   >
                     {recurrenceEditScopeOptions.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -909,9 +933,12 @@ function EventModal({
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring"
                   value={field.state.value}
                   onBlur={field.handleBlur}
-                  onChange={(e) =>
-                    field.handleChange(e.target.value as RecurrenceFrequency | 'none')
-                  }
+                  onChange={(e) => {
+                    const frequency = recurrencyOptions.find(
+                      (opt) => opt.value === e.target.value,
+                    )
+                    if (frequency) field.handleChange(frequency.value)
+                  }}
                 >
                   {recurrencyOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -1258,11 +1285,11 @@ function ScheduleView({
                                       ? 'ring-2 ring-neutral-500 z-20'
                                       : 'cursor-grab active:cursor-grabbing'
                                   } ${drag.isDragging ? 'shadow-xl ring-1 ring-neutral-400' : ''}`}
-                                  style={stackedStyle as React.CSSProperties}
+                                  style={stackedStyle}
                                   onClick={(e: React.MouseEvent) => {
                                     if (
                                       !resizeState.isResizing &&
-                                      !(e.target as HTMLElement).closest('[data-resize-handle]')
+                                      !(e.target instanceof Element && e.target.closest('[data-resize-handle]'))
                                     ) {
                                       onEventClick(event)
                                     }
@@ -1399,7 +1426,7 @@ function ScheduleView({
                           return (
                             <div
                               className="absolute bg-neutral-700/60 text-neutral-200 rounded px-2 py-1 text-xs font-medium overflow-hidden border border-neutral-600 border-dashed z-20"
-                              style={ghostStyle}
+                              style={{ ...ghostStyle }}
                             >
                               <div className="font-semibold pt-1 opacity-80">
                                 {timeRange.rangeFormatted}
@@ -1484,7 +1511,7 @@ function ScopeChoiceModal({
   onSelect,
   onClose,
 }: {
-  event: Event<Resource> | null
+  event: Event | null
   isOpen: boolean
   title?: string
   onSelect: (scope: RecurrenceEditScope) => void
@@ -1587,10 +1614,13 @@ export function CalendarView() {
 
       return MOCK_DB.filter((e) => {
         if (e.recurrence) return true
-        const eStart = new Date(e.start as string)
-        const eEnd = new Date(e.end as string)
+        const eStart = new Date(e.start)
+        const eEnd = new Date(e.end)
         return eStart <= endDate && eEnd >= startDate
-      }).map((event) => ({
+      })
+        // Copies on purpose: MOCK_DB stays untouched between fetches.
+        // oxlint-disable-next-line oxc/no-map-spread
+        .map((event) => ({
         ...event,
         resources:
           event.resources
@@ -1704,7 +1734,7 @@ export function CalendarView() {
 
   useEffect(() => {
     const el = monthScrollRef.current
-    if (!el) return
+    if (!el) return undefined
 
     const compute = () => {
       if (rafRef.current) return
@@ -2142,7 +2172,7 @@ export function CalendarView() {
       : null
 
   const handleDragStart = (e: DragStartEvent) => {
-    const source = e.operation.source?.data as EventDragData | undefined
+    const source = eventDragSource(e.operation.source?.data)
     if (!source) return
 
     calendar.startEventMove({
@@ -2158,7 +2188,7 @@ export function CalendarView() {
   }
 
   const handleDragMove = (e: DragMoveEvent) => {
-    const source = e.operation.source?.data as EventDragData | undefined
+    const source = eventDragSource(e.operation.source?.data)
     if (!source) return
 
     const { x, y } = e.operation.transform
@@ -2168,13 +2198,13 @@ export function CalendarView() {
     }
 
     calendar.updateEventMove({
-      dayDate: (e.operation.target?.data as DayDropData | undefined)?.isoDate,
+      dayDate: dropDay(e.operation.target?.data),
       deltaPixels: y,
     })
   }
 
   const handleDragEnd = (e: DragEndEvent) => {
-    const source = e.operation.source?.data as EventDragData | undefined
+    const source = eventDragSource(e.operation.source?.data)
     if (source) {
       for (const element of dragGroupSiblings(source.event.id)) {
         element.style.removeProperty('translate')
@@ -2271,7 +2301,7 @@ export function CalendarView() {
                 Overlap Layout
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {(Object.keys(overlapModes) as Array<OverlapMode>).map((mode) => (
+                {OVERLAP_MODE_ORDER.map((mode) => (
                   <Button
                     key={mode}
                     onClick={() => setOverlapMode(mode)}

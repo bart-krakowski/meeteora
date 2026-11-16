@@ -13,7 +13,8 @@
   },
   "plugins": ["eslint", "typescript", "unicorn", "oxc"],
   "rules": {
-    "typescript/no-extraneous-class": ["warn", { "allowWithDecorator": true }]
+    "typescript/no-extraneous-class": ["warn", { "allowWithDecorator": true }],
+    "eslint/no-underscore-dangle": ["warn", { "allow": ["_occurrenceOriginalStart"] }]
   },
   "ignorePatterns": [
     "dist/**",

@@ -80,9 +80,12 @@ function ChartContainer({
   )
 }
 
+const isTheme = (value: string): value is keyof typeof THEMES =>
+  value in THEMES
+
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
-    ([, config]) => config.theme ?? config.color
+    ([, itemConfig]) => itemConfig.theme ?? itemConfig.color
   )
 
   if (!colorConfig.length) {
@@ -99,7 +102,7 @@ ${prefix} [data-chart=${id}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
     const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ??
+      (isTheme(theme) ? itemConfig.theme?.[theme] : undefined) ??
       itemConfig.color
     return color ? `  --color-${key}: ${color};` : null
   })
@@ -234,7 +237,7 @@ function ChartTooltipContent({
                             {
                               "--color-bg": indicatorColor,
                               "--color-border": indicatorColor,
-                            } as React.CSSProperties
+                            }
                           }
                         />
                       )
@@ -326,6 +329,11 @@ function ChartLegendContent({
   )
 }
 
+function stringProperty(source: object, key: string): string | undefined {
+  const value: unknown = Reflect.get(source, key)
+  return typeof value === "string" ? value : undefined
+}
+
 function getPayloadConfigFromPayload(
   config: ChartConfig,
   payload: unknown,
@@ -342,22 +350,10 @@ function getPayloadConfigFromPayload(
       ? payload.payload
       : undefined
 
-  let configLabelKey: string = key
-
-  if (
-    key in payload &&
-    typeof payload[key as keyof typeof payload] === "string"
-  ) {
-    configLabelKey = payload[key as keyof typeof payload] as string
-  } else if (
-    payloadPayload &&
-    key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === "string"
-  ) {
-    configLabelKey = payloadPayload[
-      key as keyof typeof payloadPayload
-    ] as string
-  }
+  const configLabelKey =
+    stringProperty(payload, key) ??
+    (payloadPayload ? stringProperty(payloadPayload, key) : undefined) ??
+    key
 
   return configLabelKey in config ? config[configLabelKey] : config[key]
 }

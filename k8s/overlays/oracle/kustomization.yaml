@@ -8,6 +8,7 @@ resources:
   - ../../base
   - cluster-issuer.yaml
   - redirect-https.yaml
+  - backend-ingress.yaml
 
 # One replica each: the Always Free Ampere allowance is one or two small
 # nodes, and two of everything would request most of a node's CPU.
@@ -55,6 +56,16 @@ replacements:
         fieldPaths:
           - spec.rules.0.host
           - spec.tls.0.hosts.0
+      # auth.DOMAIN -> auth.<DOMAIN>: only the part after the first dot is replaced.
+      - select:
+          kind: Ingress
+          name: meeteora-backend
+        fieldPaths:
+          - spec.rules.*.host
+          - spec.tls.0.hosts.*
+        options:
+          delimiter: "."
+          index: 1
   - source:
       kind: ConfigMap
       name: oracle-settings

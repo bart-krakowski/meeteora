@@ -23,7 +23,7 @@ export const getSession = cache(async (): Promise<AuthSession | null> => {
   }).catch(() => undefined);
   if (!response?.ok) return null;
 
-  const body = (await response.json()) as BetterAuthSessionJson | null;
+  const body: BetterAuthSessionJson | null = await response.json();
   if (!body) return null;
   return {
     user: {

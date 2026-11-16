@@ -64,7 +64,7 @@ const RELATIVE_UNITS: Array<[Intl.RelativeTimeFormatUnit, number]> = [
 export function formatRelative(iso: string, now: Date = new Date()): string {
   const seconds = Math.round((new Date(iso).getTime() - now.getTime()) / 1000);
   const [unit, size] =
-    RELATIVE_UNITS.find(([, size]) => Math.abs(seconds) >= size) ??
+    RELATIVE_UNITS.find(([, unitSeconds]) => Math.abs(seconds) >= unitSeconds) ??
     RELATIVE_UNITS[RELATIVE_UNITS.length - 1];
   return relativeFormat.format(Math.round(seconds / size), unit);
 }

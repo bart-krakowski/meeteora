@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type CSSProperties, Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { initials } from "@/lib/events/format";
 import type { PublicEvent } from "@/lib/events/types";
 import { downloadIcs, Registration } from "./registration";
@@ -64,7 +64,7 @@ export function EventCard({
   // The card leans a few degrees toward a fine pointer.
   useEffect(() => {
     const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
-    if (!finePointer.matches || prefersReducedMotion()) return;
+    if (!finePointer.matches || prefersReducedMotion()) return undefined;
     const root = document.documentElement;
     let frame = 0;
     const onMove = (pointer: PointerEvent) => {
@@ -91,7 +91,7 @@ export function EventCard({
   return (
     <section
       aria-labelledby="event-title"
-      style={{ "--grain": `url("${GRAIN}")` } as CSSProperties}
+      style={{ "--grain": `url("${GRAIN}")` }}
       className={cx(
         "relative grid min-h-dvh w-full place-items-center overflow-clip px-(--edge) py-6",
         "[--edge:64px] min-[1200px]:[--edge:120px] max-sm:py-4 max-sm:[--edge:16px]",
@@ -104,7 +104,7 @@ export function EventCard({
       <div className="relative z-1 flex flex-col items-center gap-[22px] [--card-w:min(calc(100vw_-_var(--edge)_*_2),calc((100dvh_-_124px)_*_85_/_55))] max-sm:gap-3.5 max-sm:[--card-w:calc(100vw_-_32px)]">
         <div
           data-revealed={revealed || undefined}
-          style={{ "--fit-l": fit.landscape, "--fit-p": fit.portrait } as CSSProperties}
+          style={{ "--fit-l": fit.landscape, "--fit-p": fit.portrait }}
           className="group/scene aspect-85/55 w-[max(300px,var(--card-w))] perspective-[2200px] max-sm:aspect-auto max-sm:w-[max(288px,var(--card-w))]"
         >
           <div className="relative size-full transform-3d [transform:rotateX(var(--tilt-x,0deg))_rotateY(var(--tilt-y,0deg))] ease-[cubic-bezier(0.16,1,0.3,1)] motion-safe:transition-transform motion-safe:duration-600 motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-92 motion-safe:slide-in-from-bottom-12 motion-safe:spin-in-[-5deg] motion-safe:[--tw-animation-duration:1.2s] motion-safe:fill-mode-backwards max-sm:h-auto">
@@ -163,7 +163,7 @@ export function EventCard({
                     {words.map((word, index) => (
                       <Fragment key={`${word}-${index}`}>
                         {index > 0 && " "}
-                        <span className="inline-block align-top" style={{ "--i": index } as CSSProperties}>
+                        <span className="inline-block align-top" style={{ "--i": index }}>
                           <span className="inline-block motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-[0.45em] motion-safe:duration-1100 motion-safe:ease-[cubic-bezier(0.16,1,0.3,1)] motion-safe:delay-[calc(450ms_+_var(--i)_*_80ms)] motion-safe:fill-mode-backwards">
                             {word}
                           </span>
@@ -384,14 +384,14 @@ function Capacity({
       {ticks > 0 && (
         <span
           aria-hidden
-          style={{ "--n": ticks } as CSSProperties}
+          style={{ "--n": ticks }}
           className="grid h-3 w-full grid-cols-[repeat(var(--n),1fr)] items-end"
         >
           {Array.from({ length: ticks }, (_, index) => (
             <i
               key={index}
               data-on={index < filled || undefined}
-              style={{ "--i": index } as CSSProperties}
+              style={{ "--i": index }}
               className="h-[55%] w-px origin-bottom bg-foreground/20 nth-[5n+1]:h-full data-on:bg-foreground motion-safe:group-data-revealed/scene:animate-in zoom-in-0 duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] delay-[calc(var(--i)_*_18ms)] fill-mode-backwards"
             />
           ))}
@@ -416,7 +416,7 @@ function Capacity({
                   "--i": index,
                   "--tone": AVATAR_TONES[index % AVATAR_TONES.length],
                   "--on": index < 3 ? "var(--color-background)" : "var(--color-foreground)",
-                } as CSSProperties
+                }
               }
             >
               {initials(attendee.name)}
@@ -424,7 +424,7 @@ function Capacity({
           ))}
           {others > 0 && (
             <li
-              style={{ "--i": recentAttendees.length } as CSSProperties}
+              style={{ "--i": recentAttendees.length }}
               className={cx(
                 avatarClass,
                 "ml-1 px-[9px] text-muted-foreground inset-ring inset-ring-foreground/20",
@@ -446,10 +446,10 @@ function useCountUp(target: number, active: boolean) {
   const started = useRef(false);
 
   useEffect(() => {
-    if (!active) return;
+    if (!active) return undefined;
     if (prefersReducedMotion()) {
       setValue(target);
-      return;
+      return undefined;
     }
     const start = started.current ? from.current : 0;
     started.current = true;

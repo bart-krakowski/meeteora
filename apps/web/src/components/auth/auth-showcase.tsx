@@ -7,7 +7,7 @@ const GUESTS = ["Hana Sato", "Jonas Berg", "Amira Haddad"];
 
 export function AuthShowcase() {
   return (
-    <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-xl py-8">
+    <div className="relative flex h-full flex-col justify-between overflow-hidden py-8">
       <Image
         src={loginBackground}
         alt=""

@@ -1,11 +1,3 @@
-#!/usr/bin/env bash
-# One-time (and re-runnable) setup of meeteora on an OKE cluster created by
-# infra/oracle. Expects kubectl to point at that cluster.
-#
-# Optional env:
-#   GHCR_USER / GHCR_TOKEN  pull credentials if the GHCR packages are private
-#   GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / APPLE_CLIENT_ID / APPLE_CLIENT_SECRET
-#                           social sign-in; read only when the secret is first created
 set -euo pipefail
 
 NAMESPACE=meeteora
@@ -21,7 +13,14 @@ if grep -q 'example\.com' "$OVERLAY/settings.env"; then
   placeholder_settings=1
 fi
 
-kubectl get nodes >/dev/null
+context=$(kubectl config current-context)
+server=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+if ! kubectl get nodes -o jsonpath='{.items[*].spec.providerID}' | grep -q '^ocid1\.'; then
+  echo "kubectl context '$context' ($server) is not an OKE cluster."
+  echo "Switch first: kubectl config use-context <your OKE context>"
+  exit 1
+fi
+echo "Deploying to '$context' ($server)"
 
 echo "Installing Traefik (ingress, behind the free 10 Mbps OCI load balancer)"
 helm repo add traefik https://traefik.github.io/charts --force-update >/dev/null
