@@ -7,6 +7,7 @@ import {
   SidebarHeader,
 } from "@meeteora/ui/components/sidebar";
 import type * as React from "react";
+import { CommandMenu } from "@/components/command-menu";
 import { Logo } from "@/components/logo";
 import { NavDevelopment } from "@/components/nav-development";
 import { NavMain } from "@/components/nav-main";
@@ -24,7 +25,10 @@ export function AppSidebar({
       <SidebarHeader>
         <div className="flex items-center justify-between px-2">
           <Logo className="size-8 text-white" />
-          <NotificationsPanel />
+          <div>
+            <CommandMenu />
+            <NotificationsPanel />
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>

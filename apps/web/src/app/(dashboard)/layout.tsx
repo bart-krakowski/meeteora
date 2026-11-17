@@ -1,21 +1,20 @@
-import {
-  SidebarInset,
-  SidebarProvider,
-} from '@meeteora/ui/components/sidebar';
-import type * as React from 'react';
-import { Toaster } from '@meeteora/ui/components/sonner';
-import { AppSidebar } from '@/components/app-sidebar';
-import { NotificationsProvider } from '@/components/notifications/notifications-provider';
-import { SiteHeader } from '@/components/site-header';
-import { requireSession } from '@/lib/auth/session';
-import '../calendar.css';
+import { SidebarInset, SidebarProvider } from "@meeteora/ui/components/sidebar";
+import type * as React from "react";
+import { Toaster } from "@meeteora/ui/components/sonner";
+import { AppSidebar } from "@/components/app-sidebar";
+import { NotificationsProvider } from "@/components/notifications/notifications-provider";
+import { SiteHeader } from "@/components/site-header";
+import { requireSession } from "@/lib/auth/session";
+import "../calendar.css";
+import { Button } from "@meeteora/ui/components/button";
+import { AgentIcon, CursorIcon } from "@meeteora/ui/components/icons";
 
 const shellStyle: React.CSSProperties = {
-  '--sidebar-width': 'calc(var(--spacing) * 64)',
-  '--header-height': 'calc(var(--spacing) * 12)',
+  "--sidebar-width": "calc(var(--spacing) * 64)",
+  "--header-height": "calc(var(--spacing) * 12)",
 };
 
-export default async function DashboardLayout({ children }: LayoutProps<'/'>) {
+export default async function DashboardLayout({ children }: LayoutProps<"/">) {
   const { user } = await requireSession();
 
   return (
@@ -23,13 +22,23 @@ export default async function DashboardLayout({ children }: LayoutProps<'/'>) {
       <SidebarProvider style={shellStyle}>
         <AppSidebar
           variant="inset"
-          user={{ name: user.name, email: user.email, avatar: user.image ?? undefined }}
+          user={{
+            name: user.name,
+            email: user.email,
+            avatar: user.image ?? undefined,
+          }}
         />
-        <SidebarInset>
-          <SiteHeader />
-          <div className="@container/main flex min-h-0 flex-1 flex-col overflow-y-auto bg-background">
+        <SidebarInset className="md:peer-data-[variant=inset]:mb-0">
+          <div className="@container/main flex min-h-0 flex-1 flex-col overflow-y-auto bg-background md:rounded-2xl">
+            <SiteHeader />
             {children}
           </div>
+          <footer className="flex py-1 w-full shrink-0 items-center justify-end-safe gap-2">
+            <Button variant="secondary" size="sm">
+              Agent
+              <CursorIcon />
+            </Button>
+          </footer>
         </SidebarInset>
       </SidebarProvider>
       <Toaster theme="dark" />

@@ -51,6 +51,7 @@ import {
   ContextMenuTrigger,
 } from '@meeteora/ui/components/context-menu'
 import { ScrollArea } from '@meeteora/ui/components/scroll-area'
+import { TIME_ZONE } from '@/lib/format'
 
 
 
@@ -130,37 +131,6 @@ function restoreScrollAnchor(
   if (axis === 'y') container.scrollTop += delta
   else container.scrollLeft += delta
   return true
-}
-
-function padTimePart(n: number): string {
-  return String(n).padStart(2, '0')
-}
-
-function workWeekMonday(): Date {
-  const today = new Date()
-  const dow = today.getDay()
-  const monday = new Date(today)
-
-  if (dow === 0 || dow === 6) {
-    monday.setDate(today.getDate() + (dow === 0 ? 1 : 2))
-  } else {
-    monday.setDate(today.getDate() + (1 - dow))
-  }
-  monday.setHours(0, 0, 0, 0)
-  return monday
-}
-
-function weekdayAt(isoWeekday: 1 | 2 | 3 | 4 | 5): Date {
-  const monday = workWeekMonday()
-  const d = new Date(monday)
-  d.setDate(monday.getDate() + isoWeekday - 1)
-  return d
-}
-
-function dateTimeOnWeekday(isoWeekday: 1 | 2 | 3 | 4 | 5, hour: number, minute: number): string {
-  const d = weekdayAt(isoWeekday)
-  d.setHours(hour, minute, 0, 0)
-  return `${formatDateToISO(d)}T${padTimePart(hour)}:${padTimePart(minute)}:00`
 }
 
 function getResourceId(resource: Resource | string): string {
@@ -384,10 +354,58 @@ const workingCalendars: Array<WorkingCalendar> = [
   },
 ]
 
-const sampleResources: Array<Resource> = [
-  { id: 'room-a', label: 'Room A', capacity: [4] },
-  { id: 'room-b', label: 'Room B', capacity: [2] },
-]
+export interface CalendarResource {
+  id: string
+  name: string
+}
+
+export interface CalendarBooking {
+  id: string
+  resourceId: string
+  startAt: string
+  endAt: string
+  status: string
+  title: string
+}
+
+function toResource({ id, name }: CalendarResource): Resource {
+  return { id, label: name, capacity: [1] }
+}
+
+const wallClockFormat = new Intl.DateTimeFormat('en-CA', {
+  timeZone: TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+})
+
+/** Instant -> naive wall-clock string in TIME_ZONE; calendar runs on naive times. */
+function toWallClock(iso: string): string {
+  const parts = Object.fromEntries(
+    wallClockFormat.formatToParts(new Date(iso)).map((part) => [part.type, part.value]),
+  )
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`
+}
+
+function toCalendarEvent(
+  booking: CalendarBooking,
+  resourceById: ReadonlyMap<string, Resource>,
+): DemoEvent {
+  const resource = resourceById.get(booking.resourceId)
+  return {
+    id: booking.id,
+    title: booking.title,
+    start: toWallClock(booking.startAt),
+    end: toWallClock(booking.endAt),
+    resources: resource ? [resource] : [],
+    consumption: [1],
+    categoryId: booking.status === 'confirmed' ? 'confirmed' : 'cancelled',
+  }
+}
 
 interface EventCategory {
   id: string
@@ -398,28 +416,16 @@ interface EventCategory {
 
 const eventCategories: Array<EventCategory> = [
   {
-    id: 'work',
-    label: 'Work',
-    swatch: '#525252',
-    eventClass: 'bg-neutral-900/80 border-neutral-700/60 hover:bg-neutral-800/90',
-  },
-  {
-    id: 'team',
-    label: 'Team',
-    swatch: '#737373',
+    id: 'confirmed',
+    label: 'Confirmed',
+    swatch: '#a3a3a3',
     eventClass: 'bg-neutral-800/80 border-neutral-600/60 hover:bg-neutral-700/90',
   },
   {
-    id: 'personal',
-    label: 'Personal',
-    swatch: '#a3a3a3',
-    eventClass: 'bg-neutral-700/80 border-neutral-500/60 hover:bg-neutral-600/90',
-  },
-  {
-    id: 'holiday',
-    label: 'Holidays',
-    swatch: '#d4d4d4',
-    eventClass: 'bg-neutral-600/80 border-neutral-400/60 hover:bg-neutral-500/90',
+    id: 'cancelled',
+    label: 'Cancelled',
+    swatch: '#525252',
+    eventClass: 'bg-neutral-900/60 border-neutral-800/60 text-neutral-500 line-through hover:bg-neutral-900/80',
   },
 ]
 
@@ -435,181 +441,6 @@ interface DemoEvent extends Event {
   categoryId: string
 }
 
-function getSampleEvents(): Array<DemoEvent> {
-  return [
-    {
-      id: '1',
-      title: 'Team Meeting (A:2)',
-      start: dateTimeOnWeekday(2, 12, 0),
-      end: dateTimeOnWeekday(2, 13, 0),
-      resources: [sampleResources[0]],
-      consumption: [2],
-      categoryId: 'team',
-    },
-    {
-      id: '2',
-      title: 'Project Review (A:2)',
-      start: dateTimeOnWeekday(3, 14, 0),
-      end: dateTimeOnWeekday(3, 15, 30),
-      resources: [sampleResources[0]],
-      consumption: [2],
-      categoryId: 'work',
-    },
-    {
-      id: '3',
-      title: 'Workshop (B:1)',
-      start: dateTimeOnWeekday(4, 12, 0),
-      end: dateTimeOnWeekday(4, 16, 30),
-      resources: [sampleResources[1]],
-      consumption: [1],
-      categoryId: 'team',
-    },
-    // Overlap demo: switch between "Side by side" and "Expand" to see the difference.
-    // With "columns" every event gets an equal slice; with "expand" the early/late
-    // events widen into the empty column created by the short 17:30–18:00 events.
-    {
-      id: 'expand-anchor',
-      title: 'Expand Anchor (A:1)',
-      start: dateTimeOnWeekday(3, 16, 0),
-      end: dateTimeOnWeekday(3, 19, 0),
-      resources: [sampleResources[0]],
-      consumption: [1],
-      categoryId: 'work',
-    },
-    {
-      id: 'expand-left',
-      title: 'Expand Left (B:1)',
-      start: dateTimeOnWeekday(3, 16, 30),
-      end: dateTimeOnWeekday(3, 17, 30),
-      resources: [sampleResources[1]],
-      consumption: [1],
-      categoryId: 'personal',
-    },
-    {
-      id: 'expand-gap',
-      title: 'Expand Gap (B:1)',
-      start: dateTimeOnWeekday(3, 17, 30),
-      end: dateTimeOnWeekday(3, 18, 0),
-      resources: [sampleResources[1]],
-      consumption: [1],
-      categoryId: 'personal',
-    },
-    {
-      id: 'expand-right',
-      title: 'Expand Right (B:1)',
-      start: dateTimeOnWeekday(3, 18, 0),
-      end: dateTimeOnWeekday(3, 19, 0),
-      resources: [sampleResources[1]],
-      consumption: [1],
-      categoryId: 'personal',
-    },
-    {
-      id: 'expand-floater',
-      title: 'Expand Floater (A:1)',
-      start: dateTimeOnWeekday(3, 17, 30),
-      end: dateTimeOnWeekday(3, 18, 0),
-      resources: [sampleResources[0]],
-      consumption: [1],
-      categoryId: 'work',
-    },
-    {
-      id: '4',
-      title: 'Capacity Probe (A:1)',
-      start: dateTimeOnWeekday(5, 12, 0),
-      end: dateTimeOnWeekday(5, 13, 0),
-      resources: [sampleResources[0]],
-      consumption: [1],
-      categoryId: 'work',
-    },
-    {
-      id: '5',
-      title: 'Focus Block (A:2)',
-      start: dateTimeOnWeekday(5, 12, 30),
-      end: dateTimeOnWeekday(5, 14, 30),
-      resources: [sampleResources[0]],
-      consumption: [2],
-      categoryId: 'personal',
-    },
-    {
-      id: '6',
-      title: 'Interview (B:1)',
-      start: dateTimeOnWeekday(2, 12, 30),
-      end: dateTimeOnWeekday(2, 14, 0),
-      resources: [sampleResources[1]],
-      consumption: [1],
-      categoryId: 'team',
-    },
-    {
-      id: 'r-standup',
-      title: '☀ Daily Stand-up (A:1)',
-      start: dateTimeOnWeekday(1, 9, 0),
-      end: dateTimeOnWeekday(1, 9, 15),
-      resources: [sampleResources[0]],
-      consumption: [1],
-      categoryId: 'team',
-      recurrence: {
-        frequency: 'daily',
-        interval: 1,
-        byWeekday: undefined,
-        exDates: [dateTimeOnWeekday(3, 9, 0)],
-        overrides: [
-          {
-            originalStart: dateTimeOnWeekday(2, 9, 0),
-            start: dateTimeOnWeekday(2, 15, 0),
-            end: dateTimeOnWeekday(2, 15, 15),
-            title: '☀ Daily Stand-up moved (A:1)',
-          },
-        ],
-      },
-    },
-    {
-      id: 'r-sync',
-      title: '🔄 Weekly Sync (B:1)',
-      start: dateTimeOnWeekday(1, 10, 0),
-      end: dateTimeOnWeekday(1, 10, 30),
-      resources: [sampleResources[1]],
-      consumption: [1],
-      categoryId: 'team',
-      recurrence: {
-        frequency: 'weekly',
-        interval: 1,
-        byWeekday: [1],
-        count: 6,
-      },
-    },
-    {
-      id: 'r-report',
-      title: '📊 Monthly Report (A:1)',
-      start: dateTimeOnWeekday(1, 14, 0),
-      end: dateTimeOnWeekday(1, 15, 0),
-      resources: [sampleResources[0]],
-      consumption: [1],
-      categoryId: 'work',
-      recurrence: {
-        frequency: 'monthly',
-        interval: 1,
-      },
-    },
-    {
-      id: 'ad-holiday',
-      title: '🎉 Company Holiday',
-      start: `${formatDateToISO(weekdayAt(3))}T00:00:00`,
-      end: `${formatDateToISO(weekdayAt(3))}T23:59:59`,
-      allDay: true,
-      categoryId: 'holiday',
-    },
-    {
-      id: 'ad-conf',
-      title: '🏢 Offsite Conference',
-      start: `${formatDateToISO(weekdayAt(4))}T00:00:00`,
-      end: `${formatDateToISO(weekdayAt(5))}T23:59:59`,
-      allDay: true,
-      categoryId: 'team',
-    },
-  ]
-}
-
-const MOCK_DB = getSampleEvents()
 
 interface EventFormData {
   title: string
@@ -633,7 +464,7 @@ const emptyFormData: EventFormData = {
   endDate: formatDateToISO(new Date()),
   endTime: '10:00',
   categoryId: eventCategories[0]?.id ?? '',
-  resourceId: sampleResources[0]?.id ?? '',
+  resourceId: '',
   consumption: 1,
   recurrenceFrequency: 'none',
   recurrenceUntil: '',
@@ -1558,8 +1389,25 @@ function ScopeChoiceModal({
   )
 }
 
-export function CalendarView() {
-  const [resources, setResources] = useState<Array<Resource>>(sampleResources)
+export interface CalendarViewProps {
+  resources: Array<CalendarResource>
+  bookings: Array<CalendarBooking>
+}
+
+export function CalendarView({ resources: initialResources, bookings }: CalendarViewProps) {
+  const [resources, setResources] = useState<Array<Resource>>(() =>
+    initialResources.map(toResource),
+  )
+  useEffect(() => {
+    setResources(initialResources.map(toResource))
+  }, [initialResources])
+
+  const events = useMemo(() => {
+    const resourceById = new Map(
+      initialResources.map((resource) => [resource.id, toResource(resource)]),
+    )
+    return bookings.map((booking) => toCalendarEvent(booking, resourceById))
+  }, [bookings, initialResources])
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean
@@ -1599,35 +1447,12 @@ export function CalendarView() {
   const calendar = useCalendar<typeof features, Resource, DemoEvent>({
     features,
     viewMode: { value: 1, unit: 'month' },
-    events: [],
+    events,
     resources,
     calendars: workingCalendars,
     defaultCalendarId: 'office',
     timeZone: 'UTC',
     locale: 'en-US',
-    fetchEvents: async ({ start, end }) => {
-      await new Promise((resolve) => setTimeout(resolve, 300))
-
-      const startDate = new Date(start)
-      const endDate = new Date(end)
-      const resourceById = new Map(resources.map((resource) => [resource.id, resource]))
-
-      return MOCK_DB.filter((e) => {
-        if (e.recurrence) return true
-        const eStart = new Date(e.start)
-        const eEnd = new Date(e.end)
-        return eStart <= endDate && eEnd >= startDate
-      })
-        // Copies on purpose: MOCK_DB stays untouched between fetches.
-        // oxlint-disable-next-line oxc/no-map-spread
-        .map((event) => ({
-        ...event,
-        resources:
-          event.resources
-            ?.map((resource) => resourceById.get(getResourceId(resource)))
-            .filter((resource): resource is Resource => resource != null) ?? [],
-      }))
-    },
     resize: {
       enabled: true,
       containerHeight: 1440,
@@ -1667,7 +1492,11 @@ export function CalendarView() {
 
   const dayNames = calendar.getDaysNames('short')
 
-  const { setEventFilter, setResources: setCalendarResources } = calendar
+  const { setEventFilter, setEvents, setResources: setCalendarResources } = calendar
+
+  useEffect(() => {
+    setEvents(events)
+  }, [setEvents, events])
 
   useEffect(() => {
     setCalendarResources(resources)
