@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import type { Resource } from "@meeteora/contracts";
-import { Button } from "@meeteora/ui/components/button";
+import type { Resource } from '@meeteora/contracts';
+import { Button } from '@meeteora/ui/components/button';
 import {
   Dialog,
   DialogClose,
@@ -11,14 +11,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@meeteora/ui/components/dialog";
-import { Input } from "@meeteora/ui/components/input";
-import { Label } from "@meeteora/ui/components/label";
-import { toast } from "@meeteora/ui/components/sonner";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type ReactElement, useId, useState } from "react";
-import { formText } from "@/lib/form-data";
-import { useTRPC } from "@/trpc/provider";
+} from '@meeteora/ui/components/dialog';
+import { Field, FieldError, FieldLabel } from '@meeteora/ui/components/field';
+import { Input } from '@meeteora/ui/components/input';
+import { toast } from '@meeteora/ui/components/sonner';
+import { useForm } from '@tanstack/react-form';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { type ReactElement, useId, useState } from 'react';
+import * as z from 'zod';
+import { useTRPC } from '@/trpc/provider';
 
 /** Refetches the resource list on success and toasts on failure. */
 export function useResourceMutationCallbacks() {
@@ -26,18 +27,27 @@ export function useResourceMutationCallbacks() {
   const queryClient = useQueryClient();
   return {
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: trpc.resources.list.queryKey() }),
+      queryClient.invalidateQueries({
+        queryKey: trpc.resources.list.queryKey(),
+      }),
     onError: (error: { message: string }) =>
-      toast.error(error.message || "Something went wrong. Try again."),
+      toast.error(error.message || 'Something went wrong. Try again.'),
   };
 }
+
+const nameSchema = z.object({
+  name: z
+    .string()
+    .min(1, 'Enter a name.')
+    .max(80, 'Name must be at most 80 characters.'),
+});
 
 function NameDialog({
   trigger,
   title,
   description,
   submitLabel,
-  defaultName,
+  defaultName = '',
   pending,
   onSubmit,
 }: {
@@ -47,46 +57,72 @@ function NameDialog({
   submitLabel: string;
   defaultName?: string;
   pending: boolean;
-  /** Resolves when saved; the dialog then closes. */
   onSubmit: (name: string) => Promise<unknown>;
 }) {
   const [open, setOpen] = useState(false);
   const inputId = useId();
 
+  const form = useForm({
+    defaultValues: { name: defaultName },
+    validators: { onSubmit: nameSchema },
+    onSubmit: async ({ value }) => {
+      await onSubmit(value.name).then(
+        () => setOpen(false),
+        () => {},
+      );
+    },
+  });
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) form.reset({ name: defaultName });
+      }}
+    >
       <DialogTrigger render={trigger} />
       <DialogContent>
         <form
           className="flex flex-col gap-6"
           onSubmit={(event) => {
             event.preventDefault();
-            const name = formText(new FormData(event.currentTarget), "name");
-            onSubmit(name).then(() => setOpen(false), () => {});
+            void form.handleSubmit();
           }}
         >
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor={inputId}>Name</Label>
-            <Input
-              id={inputId}
-              name="name"
-              required
-              maxLength={80}
-              defaultValue={defaultName}
-              placeholder="e.g. Anna or Room 2"
-              autoFocus
-            />
-          </div>
+          <form.Field
+            name="name"
+            children={(field) => {
+              const isInvalid =
+                field.state.meta.isTouched && !field.state.meta.isValid;
+              return (
+                <Field data-invalid={isInvalid} className="gap-2">
+                  <FieldLabel htmlFor={inputId}>Name</FieldLabel>
+                  <Input
+                    id={inputId}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    aria-invalid={isInvalid}
+                    placeholder="e.g. Anna or Room 2"
+                    autoFocus
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </Field>
+              );
+            }}
+          />
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="ghost" />}>
               Cancel
             </DialogClose>
             <Button type="submit" disabled={pending}>
-              {pending ? "Saving…" : submitLabel}
+              {pending ? 'Saving…' : submitLabel}
             </Button>
           </DialogFooter>
         </form>
@@ -95,7 +131,6 @@ function NameDialog({
   );
 }
 
-/** The page's main action: a button that opens the new-resource dialog. */
 export function AddResourceDialog() {
   const trpc = useTRPC();
   const create = useMutation(
@@ -113,7 +148,7 @@ export function AddResourceDialog() {
   );
 }
 
-export function RenameResourceDialog({ resource }: { resource: Resource }) {
+export function EditResourceDialog({ resource }: { resource: Resource }) {
   const trpc = useTRPC();
   const rename = useMutation(
     trpc.resources.rename.mutationOptions(useResourceMutationCallbacks()),

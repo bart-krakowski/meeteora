@@ -19,6 +19,7 @@
     "@meeteora/ui": "workspace:*",
     "@tanstack/react-devtools": "^0.10.14",
     "@tanstack/react-form": "^1.33.5",
+    "@tanstack/react-form-devtools": "^0.2.34",
     "@tanstack/react-hotkeys": "^0.27.0",
     "@tanstack/react-hotkeys-devtools": "^0.14.12",
     "@tanstack/react-query": "^5.108.0",

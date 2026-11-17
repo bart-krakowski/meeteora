@@ -1,12 +1,18 @@
-"use client";
+'use client';
 
-import type { Resource } from "@meeteora/contracts";
-import { Button } from "@meeteora/ui/components/button";
-import { DataTable, dataTableColumns } from "@meeteora/ui/components/data-table";
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-import { useTRPC } from "@/trpc/provider";
-import { RenameResourceDialog, useResourceMutationCallbacks } from "./resource-dialogs";
+import type { Resource } from '@meeteora/contracts';
+import { Button } from '@meeteora/ui/components/button';
+import {
+  DataTable,
+  dataTableColumns,
+} from '@meeteora/ui/components/data-table';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { useTRPC } from '@/trpc/provider';
+import {
+  EditResourceDialog,
+  useResourceMutationCallbacks,
+} from './resource-dialogs';
 
 export interface ResourceRow extends Resource {
   /** Confirmed bookings that haven't started yet. */
@@ -21,12 +27,14 @@ function ResourceActions({ resource }: { resource: ResourceRow }) {
   const busy = resource.upcoming > 0;
   return (
     <div className="flex justify-end gap-2">
-      <RenameResourceDialog resource={resource} />
+      <EditResourceDialog resource={resource} />
       <Button
         variant="outline"
         size="sm"
         disabled={busy || remove.isPending}
-        title={busy ? "Cancel its upcoming bookings before deleting" : undefined}
+        title={
+          busy ? 'Cancel its upcoming bookings before deleting' : undefined
+        }
         onClick={() => remove.mutate({ id: resource.id })}
       >
         Delete
@@ -38,19 +46,19 @@ function ResourceActions({ resource }: { resource: ResourceRow }) {
 const column = dataTableColumns<ResourceRow>();
 
 const columns = column.columns([
-  column.accessor("name", {
-    header: "Name",
-    sortFn: "text",
-    meta: { className: "font-medium" },
+  column.accessor('name', {
+    header: 'Name',
+    sortFn: 'text',
+    meta: { className: 'font-medium' },
   }),
-  column.accessor("upcoming", {
-    header: "Upcoming bookings",
-    sortFn: "basic",
-    meta: { className: "tabular-nums" },
+  column.accessor('upcoming', {
+    header: 'Upcoming bookings',
+    sortFn: 'basic',
+    meta: { className: 'tabular-nums' },
   }),
   column.display({
-    id: "actions",
-    meta: { className: "text-right" },
+    id: 'actions',
+    meta: { className: 'text-right' },
     cell: ({ row }) => <ResourceActions resource={row.original} />,
   }),
 ]);
@@ -58,7 +66,9 @@ const columns = column.columns([
 /** Hosts that bookings are held by, sorted by name. */
 export function ResourcesTable({ upcomingFrom }: { upcomingFrom: string }) {
   const trpc = useTRPC();
-  const { data: resourceList } = useSuspenseQuery(trpc.resources.list.queryOptions());
+  const { data: resourceList } = useSuspenseQuery(
+    trpc.resources.list.queryOptions(),
+  );
   const { data: bookings } = useSuspenseQuery(
     trpc.bookings.list.queryOptions({ from: upcomingFrom }),
   );
@@ -66,8 +76,11 @@ export function ResourcesTable({ upcomingFrom }: { upcomingFrom: string }) {
   const resources = useMemo<Array<ResourceRow>>(() => {
     const upcoming = new Map<string, number>();
     for (const booking of bookings) {
-      if (booking.status !== "confirmed") continue;
-      upcoming.set(booking.resourceId, (upcoming.get(booking.resourceId) ?? 0) + 1);
+      if (booking.status !== 'confirmed') continue;
+      upcoming.set(
+        booking.resourceId,
+        (upcoming.get(booking.resourceId) ?? 0) + 1,
+      );
     }
     return resourceList.map(({ id, name }) => ({
       id,
@@ -81,7 +94,7 @@ export function ResourcesTable({ upcomingFrom }: { upcomingFrom: string }) {
       columns={columns}
       data={resources}
       getRowId={(resource) => resource.id}
-      initialSorting={[{ id: "name", desc: false }]}
+      initialSorting={[{ id: 'name', desc: false }]}
       emptyMessage="No resources yet. Add one to start offering times."
     />
   );
