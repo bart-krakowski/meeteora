@@ -3,9 +3,11 @@
 import { Badge } from "@meeteora/ui/components/badge";
 import { Button } from "@meeteora/ui/components/button";
 import { DataTable, dataTableColumns } from "@meeteora/ui/components/data-table";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { formatEventDate, formatPrice } from "@/lib/events/format";
 import type { PublicEvent, RegistrationStatus } from "@/lib/events/types";
+import { useTRPC } from "@/trpc/provider";
 import { CopyLinkButton } from "./copy-link-button";
 
 const STATUS_LABEL: Record<RegistrationStatus, string> = {
@@ -70,7 +72,9 @@ const columns = column.columns([
 ]);
 
 /** Public events, soonest first, sortable by any column. */
-export function EventsTable({ events }: { events: Array<PublicEvent> }) {
+export function EventsTable() {
+  const trpc = useTRPC();
+  const { data: events } = useSuspenseQuery(trpc.publicEvents.list.queryOptions());
   return (
     <DataTable
       columns={columns}

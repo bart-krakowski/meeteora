@@ -15,17 +15,18 @@ import {
 import { Input } from "@meeteora/ui/components/input";
 import { Label } from "@meeteora/ui/components/label";
 import { toast } from "@meeteora/ui/components/sonner";
-import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type ReactElement, useId, useState } from "react";
 import { formText } from "@/lib/form-data";
 import { useTRPC } from "@/trpc/provider";
 
-/** Refreshes the page's server data on success and toasts on failure. */
+/** Refetches the resource list on success and toasts on failure. */
 export function useResourceMutationCallbacks() {
-  const router = useRouter();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
   return {
-    onSuccess: () => router.refresh(),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: trpc.resources.list.queryKey() }),
     onError: (error: { message: string }) =>
       toast.error(error.message || "Something went wrong. Try again."),
   };

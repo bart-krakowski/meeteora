@@ -20,6 +20,7 @@ import {
   simulateBookingAction,
   simulateCancellationAction,
 } from "@/app/(dashboard)/actions";
+import { useInvalidateBookings } from "@/components/bookings/use-invalidate-bookings";
 import { useNotifications } from "@/components/notifications/notifications-provider";
 import { CalendarMinusIcon, CalendarPlusIcon, ChevronsUpDownIcon, EraserIcon, FlaskIcon } from "@meeteora/ui/components/icons";
 
@@ -27,10 +28,12 @@ export function NavDevelopment() {
   const { isMobile } = useSidebar();
   const { clear } = useNotifications();
   const [pending, startTransition] = useTransition();
+  const invalidateBookings = useInvalidateBookings();
 
   const simulate = (action: () => Promise<void>) => () =>
     startTransition(async () => {
       await action();
+      await invalidateBookings();
     });
 
   return (

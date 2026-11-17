@@ -396,8 +396,8 @@ export function AgentIcon(props: IconProps) {
       viewBox="0 0 16 16"
       fill="none"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       {...props}
     >
       <g>
@@ -429,8 +429,8 @@ export function CursorIcon(props: IconProps) {
       viewBox="0 0 16 16"
       fill="none"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       {...props}
     >
       <g>

@@ -7,7 +7,6 @@ import {
 } from '@meeteora/contracts';
 import { toast } from '@meeteora/ui/components/sonner';
 import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
 import {
   createContext,
   type ReactNode,
@@ -19,6 +18,7 @@ import {
   useState,
 } from 'react';
 import { formatDateTime } from '@/lib/format';
+import { useInvalidateBookings } from '@/components/bookings/use-invalidate-bookings';
 import { useTRPC } from '@/trpc/provider';
 
 const STREAM_URL = '/notifications/stream';
@@ -79,8 +79,8 @@ function newestFirst(
 }
 
 export function NotificationsProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
   const trpc = useTRPC();
+  const invalidateBookings = useInvalidateBookings();
   const { data: eventTypes } = useQuery(trpc.eventTypes.list.queryOptions());
   const serviceName = useMemo(() => {
     const names = new Map(eventTypes?.map(({ id, name }) => [id, name]));
@@ -112,7 +112,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       toast(notification.title, {
         description: describeNotification(notification, serviceNameRef.current),
       });
-      router.refresh();
+      void invalidateBookings();
     };
     source.addEventListener(NOTIFICATIONS_SNAPSHOT_EVENT, onSnapshot);
     source.addEventListener(NOTIFICATION_EVENT, onNotification);
@@ -121,7 +121,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       source.removeEventListener(NOTIFICATION_EVENT, onNotification);
       source.close();
     };
-  }, [router]);
+  }, [invalidateBookings]);
 
   const updateMarkers = useCallback(
     (update: (latest: string) => Partial<Markers>) => {

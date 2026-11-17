@@ -4,9 +4,12 @@ import type { Booking } from "@meeteora/contracts";
 import { Badge } from "@meeteora/ui/components/badge";
 import { Button } from "@meeteora/ui/components/button";
 import { DataTable, dataTableColumns } from "@meeteora/ui/components/data-table";
+import { toast } from "@meeteora/ui/components/sonner";
+import { useMutation } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { cancelBookingAction } from "@/app/(dashboard)/actions";
 import { formatDateTime } from "@/lib/format";
+import { useTRPC } from "@/trpc/provider";
+import { useInvalidateBookings } from "./use-invalidate-bookings";
 
 interface BookingRow {
   booking: Booking;
@@ -14,6 +17,28 @@ interface BookingRow {
   /** Null when the resource has been deleted. */
   host: string | null;
   cancellable: boolean;
+}
+
+function CancelBookingButton({ id }: { id: string }) {
+  const trpc = useTRPC();
+  const invalidateBookings = useInvalidateBookings();
+  const cancel = useMutation(
+    trpc.bookings.cancel.mutationOptions({
+      onSuccess: invalidateBookings,
+      onError: (error) =>
+        toast.error(error.message || "Couldn't cancel the booking. Try again."),
+    }),
+  );
+  return (
+    <Button
+      variant="destructive"
+      size="sm"
+      disabled={cancel.isPending}
+      onClick={() => cancel.mutate({ id })}
+    >
+      {cancel.isPending ? "Cancelling…" : "Cancel"}
+    </Button>
+  );
 }
 
 const column = dataTableColumns<BookingRow>();
@@ -61,12 +86,7 @@ const columns = column.columns([
     meta: { className: "text-right" },
     cell: ({ row }) =>
       row.original.cancellable && (
-        <form action={cancelBookingAction}>
-          <input type="hidden" name="id" value={row.original.booking.id} />
-          <Button type="submit" variant="destructive" size="sm">
-            Cancel
-          </Button>
-        </form>
+        <CancelBookingButton id={row.original.booking.id} />
       ),
   }),
 ]);

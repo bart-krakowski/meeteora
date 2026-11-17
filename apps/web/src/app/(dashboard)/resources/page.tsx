@@ -1,38 +1,27 @@
 import { connection } from "next/server";
 import { PageBody, PageHeader } from "@/components/page-header";
 import { AddResourceDialog } from "@/components/resources/resource-dialogs";
-import {
-  type ResourceRow,
-  ResourcesTable,
-} from "@/components/resources/resources-table";
-import { api } from "@/trpc/server";
+import { ResourcesTable } from "@/components/resources/resources-table";
+import { getQueryClient, HydrateClient, trpc } from "@/trpc/server";
 
 export default async function ResourcesPage() {
   await connection();
-  const now = new Date().toISOString();
-  const [resources, bookings] = await Promise.all([
-    api.resources.list(),
-    api.bookings.list({ from: now }),
+  // Fixed per request so server prefetch and client query share one key.
+  const upcomingFrom = new Date().toISOString();
+  const queryClient = getQueryClient();
+  await Promise.all([
+    queryClient.prefetchQuery(trpc.resources.list.queryOptions()),
+    queryClient.prefetchQuery(
+      trpc.bookings.list.queryOptions({ from: upcomingFrom }),
+    ),
   ]);
 
-  const upcoming = new Map<string, number>();
-  for (const booking of bookings) {
-    if (booking.status !== "confirmed") continue;
-    upcoming.set(
-      booking.resourceId,
-      (upcoming.get(booking.resourceId) ?? 0) + 1,
-    );
-  }
-  const rows: Array<ResourceRow> = resources.map(({ id, name }) => ({
-    id,
-    name,
-    upcoming: upcoming.get(id) ?? 0,
-  }));
-
   return (
-    <PageBody>
-      <PageHeader title="Resources" actions={<AddResourceDialog />} />
-      <ResourcesTable resources={rows} />
-    </PageBody>
+    <HydrateClient>
+      <PageBody>
+        <PageHeader title="Resources" actions={<AddResourceDialog />} />
+        <ResourcesTable upcomingFrom={upcomingFrom} />
+      </PageBody>
+    </HydrateClient>
   );
 }

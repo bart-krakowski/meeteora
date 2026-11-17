@@ -21,14 +21,6 @@ export async function deleteEventTypeAction(formData: FormData) {
   revalidatePath("/events");
 }
 
-export async function cancelBookingAction(formData: FormData) {
-  const id = formData.get("id");
-  if (typeof id !== "string") throw new Error("Booking id is required");
-  await api.bookings.cancel({ id });
-  revalidatePath("/");
-  revalidatePath("/bookings");
-}
-
 const FAKE_ATTENDEES = [
   { name: "Ada Lovelace", email: "ada@example.com" },
   { name: "Alan Turing", email: "alan@example.com" },
@@ -41,7 +33,7 @@ function pick<T>(items: Array<T>): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 
-/** Dev-only: book a random open slot with a fake attendee. */
+/** Dev-only: book a random open slot with a fake attendee. Callers invalidate the bookings queries. */
 export async function simulateBookingAction() {
   const { slots } = await api.slots.list();
   const slot = pick(slots);
@@ -51,19 +43,13 @@ export async function simulateBookingAction() {
     start: slot.start,
     attendee: pick(FAKE_ATTENDEES),
   });
-  revalidatePath("/");
-  revalidatePath("/bookings");
-  revalidatePath("/calendar");
 }
 
-/** Dev-only: cancel a random confirmed booking. */
+/** Dev-only: cancel a random confirmed booking. Callers invalidate the bookings queries. */
 export async function simulateCancellationAction() {
   const bookings = await api.bookings.list();
   const confirmed = bookings.filter((b) => b.status === "confirmed");
   const booking = pick(confirmed);
   if (!booking) return;
   await api.bookings.cancel({ id: booking.id });
-  revalidatePath("/");
-  revalidatePath("/bookings");
-  revalidatePath("/calendar");
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useHotkey } from "@tanstack/react-hotkeys";
 import { Button } from "@meeteora/ui/components/button";
 import {
   Command,
@@ -17,28 +18,21 @@ import {
   SearchIcon,
 } from "@meeteora/ui/components/icons";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import {
   simulateBookingAction,
   simulateCancellationAction,
 } from "@/app/(dashboard)/actions";
+import { useInvalidateBookings } from "@/components/bookings/use-invalidate-bookings";
 import { navItems } from "@/components/nav-items";
 
 export function CommandMenu() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [, startTransition] = useTransition();
+  const invalidateBookings = useInvalidateBookings();
 
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        setOpen((prev) => !prev);
-      }
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
+  useHotkey("Meta+K", () => setOpen((prev) => !prev));
 
   const run = (action: () => void) => {
     setOpen(false);
@@ -48,6 +42,7 @@ export function CommandMenu() {
   const simulate = (action: () => Promise<void>) => () =>
     startTransition(async () => {
       await action();
+      await invalidateBookings();
     });
 
   return (

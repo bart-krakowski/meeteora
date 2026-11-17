@@ -1,34 +1,20 @@
-import { connection } from "next/server";
-import { CalendarViewClient } from "@/components/calendar/calendar-view-client";
-import type { CalendarBooking } from "@/components/calendar/calendar-view";
-import { api } from "@/trpc/server";
-
-const HISTORY_START = new Date("2000-01-01T00:00:00Z").toISOString();
+import { connection } from 'next/server';
+import { HISTORY_START } from '@/components/bookings/booking-views';
+import { CalendarViewClient } from '@/components/calendar/calendar-view-client';
+import { getQueryClient, HydrateClient, trpc } from '@/trpc/server';
 
 export default async function CalendarPage() {
   await connection();
-  const [resources, bookings, eventTypes] = await Promise.all([
-    api.resources.list(),
-    api.bookings.list({ from: HISTORY_START }),
-    api.eventTypes.list(),
+  const queryClient = getQueryClient();
+  await Promise.all([
+    queryClient.prefetchQuery(trpc.resources.list.queryOptions()),
+    queryClient.prefetchQuery(trpc.bookings.list.queryOptions({ from: HISTORY_START })),
+    queryClient.prefetchQuery(trpc.eventTypes.list.queryOptions()),
   ]);
 
-  const eventTypeNames = new Map(
-    eventTypes.map((eventType) => [eventType.id, eventType.name]),
-  );
-  const calendarBookings: Array<CalendarBooking> = bookings.map((booking) => ({
-    id: booking.id,
-    resourceId: booking.resourceId,
-    startAt: booking.startAt,
-    endAt: booking.endAt,
-    status: booking.status,
-    title: `${eventTypeNames.get(booking.ruleId) ?? "Booking"} · ${booking.attendee.name}`,
-  }));
-
   return (
-    <CalendarViewClient
-      resources={resources.map(({ id, name }) => ({ id, name }))}
-      bookings={calendarBookings}
-    />
+    <HydrateClient>
+      <CalendarViewClient />
+    </HydrateClient>
   );
 }

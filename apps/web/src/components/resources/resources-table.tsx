@@ -3,7 +3,8 @@
 import type { Resource } from "@meeteora/contracts";
 import { Button } from "@meeteora/ui/components/button";
 import { DataTable, dataTableColumns } from "@meeteora/ui/components/data-table";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { useTRPC } from "@/trpc/provider";
 import { RenameResourceDialog, useResourceMutationCallbacks } from "./resource-dialogs";
 
@@ -55,7 +56,26 @@ const columns = column.columns([
 ]);
 
 /** Hosts that bookings are held by, sorted by name. */
-export function ResourcesTable({ resources }: { resources: Array<ResourceRow> }) {
+export function ResourcesTable({ upcomingFrom }: { upcomingFrom: string }) {
+  const trpc = useTRPC();
+  const { data: resourceList } = useSuspenseQuery(trpc.resources.list.queryOptions());
+  const { data: bookings } = useSuspenseQuery(
+    trpc.bookings.list.queryOptions({ from: upcomingFrom }),
+  );
+
+  const resources = useMemo<Array<ResourceRow>>(() => {
+    const upcoming = new Map<string, number>();
+    for (const booking of bookings) {
+      if (booking.status !== "confirmed") continue;
+      upcoming.set(booking.resourceId, (upcoming.get(booking.resourceId) ?? 0) + 1);
+    }
+    return resourceList.map(({ id, name }) => ({
+      id,
+      name,
+      upcoming: upcoming.get(id) ?? 0,
+    }));
+  }, [resourceList, bookings]);
+
   return (
     <DataTable
       columns={columns}
