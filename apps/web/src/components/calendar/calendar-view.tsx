@@ -327,26 +327,7 @@ function weekAlignedRange(
   };
 }
 
-const overlayCalendars = [
-  {
-    id: "chinese",
-    label: "Lunar",
-    locale: "zh-CN",
-    render: (parts: DateParts) => `${parts.monthLong}${parts.dayOfMonth}`,
-  },
-  {
-    id: "hebrew",
-    label: "Hebrew",
-    locale: "he-IL",
-    render: (parts: DateParts) => `${parts.dayOfMonth} ${parts.monthLong}`,
-  },
-  {
-    id: "islamic-umalqura",
-    label: "Hijri",
-    locale: "ar-SA",
-    render: (parts: DateParts) => `${parts.dayOfMonth} ${parts.monthLong}`,
-  },
-];
+const overlayCalendars = [];
 
 function OverlayDayParts({
   calendar,
