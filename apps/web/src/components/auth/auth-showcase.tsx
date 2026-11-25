@@ -7,16 +7,18 @@ const GUESTS = ["Hana Sato", "Jonas Berg", "Amira Haddad"];
 
 export function AuthShowcase() {
   return (
-    <div className="relative flex h-full flex-col justify-between overflow-hidden py-8">
+    <div className="relative flex h-full flex-col justify-between overflow-hidden py-8 rounded-2">
       <Image
         src={loginBackground}
         alt=""
         fill
+        quality={100}
+        unoptimized
         sizes="50vw"
         placeholder="blur"
         className="pointer-events-none object-cover"
       />
-      <div className="pointer-events-none absolute inset-0 bg-black/30" />
+      <div className="pointer-events-none absolute inset-0 bg-black/10" />
 
       <header className="relative z-10 flex flex-col gap-6 px-8">
         <Link href="/" className="flex w-fit items-center gap-3">

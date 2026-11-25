@@ -143,8 +143,14 @@ function EmptyState() {
 }
 
 export function NotificationsPanel() {
-  const { notifications, isUnread, unreadCount, markAllRead, clear, serviceName } =
-    useNotifications();
+  const {
+    notifications,
+    isUnread,
+    unreadCount,
+    markAllRead,
+    clear,
+    serviceName,
+  } = useNotifications();
   const now = useNow();
   const [open, setOpen] = useState(false);
 
@@ -172,13 +178,15 @@ export function NotificationsPanel() {
         side="right"
         align="start"
         sideOffset={8}
-        className="w-96 gap-0 overflow-hidden p-0"
+        className="max-h-(--available-height) w-96 gap-0 overflow-hidden p-0"
       >
-        <div className="flex items-center justify-between gap-2 px-4 pt-4 pb-3">
+        <div className="flex shrink-0 items-center justify-between gap-2 px-4 pt-4 pb-3">
           <div className="flex flex-col gap-0.5">
             <PopoverTitle>Notifications</PopoverTitle>
             <PopoverDescription className="text-xs">
-              {unreadCount > 0 ? `${unreadCount} unread` : "You're all caught up"}
+              {unreadCount > 0
+                ? `${unreadCount} unread`
+                : "You're all caught up"}
             </PopoverDescription>
           </div>
           {unreadCount > 0 && (
@@ -187,11 +195,13 @@ export function NotificationsPanel() {
             </Button>
           )}
         </div>
-        <div className="border-t">
+        <div className="flex min-h-0 flex-col border-t">
           {notifications.length === 0 ? (
             <EmptyState />
           ) : (
-            <ScrollArea className="max-h-96">
+            // Flex column: the viewport's `size-full` can't resolve against a
+            // max-height alone, so it would grow past the root and over the footer.
+            <ScrollArea className="flex max-h-96 min-h-0 flex-col">
               <ul className="divide-y divide-border/60">
                 {notifications.map((notification) => (
                   <NotificationItem
@@ -208,12 +218,14 @@ export function NotificationsPanel() {
           )}
         </div>
         {notifications.length > 0 && (
-          <div className="flex items-center justify-between border-t px-2 py-2">
+          <div className="flex shrink-0 items-center justify-between border-t px-2 py-2">
             <Button
               variant="ghost"
               size="sm"
               nativeButton={false}
-              render={<Link href="/bookings" onClick={() => changeOpen(false)} />}
+              render={
+                <Link href="/bookings" onClick={() => changeOpen(false)} />
+              }
             >
               View all bookings
             </Button>

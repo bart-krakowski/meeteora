@@ -12,7 +12,7 @@ export default async function AuthLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
       </div>
-      <div className="h-dvh bg-muted max-lg:hidden">
+      <div className="h-dvh max-lg:hidden p-2">
         <AuthShowcase />
       </div>
     </div>

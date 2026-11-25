@@ -442,3 +442,21 @@ export function CursorIcon(props: IconProps) {
     </IconSvg>
   );
 }
+
+export function AiSparkleIcon(props: IconProps) {
+  return (
+    <IconSvg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="0.833"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <g>
+        <path d="M8 1.75 C8.625 5.813 10.188 7.375 14.25 8 C10.188 8.625 8.625 10.188 8 14.25 C7.375 10.188 5.813 8.625 1.75 8 C5.813 7.375 7.375 5.813 8 1.75 Z" />
+      </g>
+    </IconSvg>
+  );
+}

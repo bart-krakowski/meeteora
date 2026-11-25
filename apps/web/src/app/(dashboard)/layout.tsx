@@ -1,21 +1,20 @@
-import { SidebarInset, SidebarProvider } from "@meeteora/ui/components/sidebar";
-import type * as React from "react";
-import { Toaster } from "@meeteora/ui/components/sonner";
-import { AppSidebar } from "@/components/app-sidebar";
-import { NotificationsProvider } from "@/components/notifications/notifications-provider";
-import { SiteHeader } from "@/components/site-header";
-import { requireSession } from "@/lib/auth/session";
-import { getQueryClient, HydrateClient, trpc } from "@/trpc/server";
-import "../calendar.css";
-import { Button } from "@meeteora/ui/components/button";
-import { AgentIcon, CursorIcon } from "@meeteora/ui/components/icons";
+import { SidebarInset, SidebarProvider } from '@meeteora/ui/components/sidebar';
+import type * as React from 'react';
+import { Toaster } from '@meeteora/ui/components/sonner';
+import { AppSidebar } from '@/components/app-sidebar';
+import { NotificationsProvider } from '@/components/notifications/notifications-provider';
+import { SiteHeader } from '@/components/site-header';
+import { requireSession } from '@/lib/auth/session';
+import { getQueryClient, HydrateClient, trpc } from '@/trpc/server';
+import '../calendar.css';
+import { AgentChat } from '@/components/agent/agent-chat';
 
 const shellStyle: React.CSSProperties = {
-  "--sidebar-width": "calc(var(--spacing) * 64)",
-  "--header-height": "calc(var(--spacing) * 12)",
+  '--sidebar-width': 'calc(var(--spacing) * 64)',
+  '--header-height': 'calc(var(--spacing) * 12)',
 };
 
-export default async function DashboardLayout({ children }: LayoutProps<"/">) {
+export default async function DashboardLayout({ children }: LayoutProps<'/'>) {
   const { user } = await requireSession();
   // NotificationsProvider reads event types above every page. Hydrate them here:
   // a page's HydrationBoundary can't fill a query that already exists during SSR.
@@ -39,10 +38,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/">) {
               {children}
             </div>
             <footer className="flex py-1 w-full shrink-0 items-center justify-end-safe gap-2">
-              <Button variant="secondary" size="sm">
-                Agent
-                <CursorIcon />
-              </Button>
+              <AgentChat />
             </footer>
           </SidebarInset>
         </SidebarProvider>
