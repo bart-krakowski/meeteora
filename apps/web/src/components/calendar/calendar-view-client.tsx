@@ -1,6 +1,6 @@
 'use client'
 
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query'
 import dynamic from 'next/dynamic'
 import { useMemo } from 'react'
 import { HISTORY_START } from '@/components/bookings/booking-views'
@@ -14,14 +14,22 @@ const CalendarView = dynamic(
 
 export function CalendarViewClient() {
   const trpc = useTRPC()
+  const queryClient = useQueryClient()
+  const reschedule = useMutation(
+    trpc.bookings.reschedule.mutationOptions({
+      onSettled: () =>
+        queryClient.invalidateQueries({ queryKey: trpc.bookings.list.queryKey() }),
+    }),
+  )
   const { data: resourceList } = useSuspenseQuery(trpc.resources.list.queryOptions())
   const { data: bookingList } = useSuspenseQuery(
     trpc.bookings.list.queryOptions({ from: HISTORY_START }),
   )
   const { data: eventTypes } = useSuspenseQuery(trpc.eventTypes.list.queryOptions())
+  const { data: bookingRules } = useSuspenseQuery(trpc.bookingRules.get.queryOptions())
 
   const resources = useMemo(
-    () => resourceList.map(({ id, name }) => ({ id, name })),
+    () => resourceList.map(({ id, name, capacity }) => ({ id, name, capacity })),
     [resourceList],
   )
   const bookings = useMemo<Array<CalendarBooking>>(() => {
@@ -36,5 +44,12 @@ export function CalendarViewClient() {
     }))
   }, [bookingList, eventTypes])
 
-  return <CalendarView resources={resources} bookings={bookings} />
+  return (
+    <CalendarView
+      resources={resources}
+      bookings={bookings}
+      minNoticeMinutes={bookingRules.minNoticeMinutes}
+      onMoveBooking={(id, start) => reschedule.mutateAsync({ id, start })}
+    />
+  )
 }

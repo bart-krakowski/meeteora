@@ -10,6 +10,22 @@ export class ApiError extends Error {
   }
 }
 
+/** The API's own explanation (`{ message }`), when it sent one. */
+async function errorMessage(response: Response): Promise<string | undefined> {
+  try {
+    const body: unknown = await response.json();
+    if (typeof body !== 'object' || body === null) return undefined;
+    const { message } = body as { message?: unknown };
+    if (typeof message === 'string' && message) return message;
+    if (Array.isArray(message) && typeof message[0] === 'string') {
+      return message[0];
+    }
+  } catch {
+    // Not JSON; fall back to the status line.
+  }
+  return undefined;
+}
+
 /**
  * Minimal typed HTTP client for the internal API gateway.
  * Handles base URL, JSON encoding, query params, and uniform error shape.
@@ -39,6 +55,10 @@ export class ApiClient {
     return this.request('PATCH', this.url(path), body);
   }
 
+  put<T>(path: string, body: unknown): Promise<T> {
+    return this.request('PUT', this.url(path), body);
+  }
+
   delete<T>(path: string): Promise<T> {
     return this.request('DELETE', this.url(path));
   }
@@ -63,7 +83,8 @@ export class ApiClient {
     if (!response.ok) {
       throw new ApiError(
         response.status,
-        `${method} ${url.pathname} failed: ${response.status}`,
+        (await errorMessage(response)) ??
+          `${method} ${url.pathname} failed: ${response.status}`,
       );
     }
     const data: T = await response.json();

@@ -3,6 +3,7 @@ import { EventPattern, Payload } from '@nestjs/microservices';
 import {
   type BookingCancelledEvent,
   type BookingCreatedEvent,
+  type BookingRescheduledEvent,
   Events,
 } from '@meeteora/contracts';
 import { NotificationsHub } from './notifications.hub';
@@ -22,5 +23,10 @@ export class BookingEventsController {
   @EventPattern(Events.bookingCancelled)
   onBookingCancelled(@Payload() booking: BookingCancelledEvent): void {
     this.hub.publish(toNotification('booking.cancelled', booking));
+  }
+
+  @EventPattern(Events.bookingRescheduled)
+  onBookingRescheduled(@Payload() booking: BookingRescheduledEvent): void {
+    this.hub.publish(toNotification('booking.rescheduled', booking));
   }
 }

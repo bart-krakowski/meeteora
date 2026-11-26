@@ -4,6 +4,7 @@ import type { AppNotification } from "@meeteora/contracts";
 import { Button } from "@meeteora/ui/components/button";
 import {
   BellIcon,
+  CalendarIcon,
   CalendarMinusIcon,
   CalendarPlusIcon,
 } from "@meeteora/ui/components/icons";
@@ -53,6 +54,12 @@ const KIND = {
     verb: "cancelled",
     href: "/bookings?view=cancelled",
     chip: "bg-destructive/10 text-destructive",
+  },
+  "booking.rescheduled": {
+    Icon: CalendarIcon,
+    verb: "moved",
+    href: "/bookings",
+    chip: "bg-muted text-foreground",
   },
 } as const;
 

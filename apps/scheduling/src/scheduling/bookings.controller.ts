@@ -5,6 +5,7 @@ import {
   type BookingIdRequest,
   type CreateBookingRequest,
   type ListBookingsRequest,
+  type RescheduleBookingRequest,
   SchedulingPatterns,
 } from '@meeteora/contracts';
 import { BookingsService } from './bookings.service';
@@ -26,6 +27,11 @@ export class BookingsController {
   @MessagePattern(SchedulingPatterns.getBooking)
   get(@Payload() request: BookingIdRequest): Promise<Booking> {
     return this.bookings.get(request);
+  }
+
+  @MessagePattern(SchedulingPatterns.rescheduleBooking)
+  reschedule(@Payload() request: RescheduleBookingRequest): Promise<Booking> {
+    return this.bookings.reschedule(request);
   }
 
   @MessagePattern(SchedulingPatterns.cancelBooking)

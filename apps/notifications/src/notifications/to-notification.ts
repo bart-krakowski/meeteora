@@ -7,6 +7,7 @@ import type {
 const TITLES: Record<NotificationKind, string> = {
   'booking.created': 'New booking',
   'booking.cancelled': 'Booking cancelled',
+  'booking.rescheduled': 'Booking moved',
 };
 
 export function toNotification(
@@ -15,7 +16,11 @@ export function toNotification(
   now: Date = new Date(),
 ): AppNotification {
   return {
-    id: `${kind}:${booking.id}`,
+    // A booking can move many times; key each move by its new start.
+    id:
+      kind === 'booking.rescheduled'
+        ? `${kind}:${booking.id}:${booking.startAt}`
+        : `${kind}:${booking.id}`,
     kind,
     title: TITLES[kind],
     booking,

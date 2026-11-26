@@ -6,6 +6,7 @@ import {
   type CreateBookingRequest,
   Events,
   type ListBookingsRequest,
+  type RescheduleBookingRequest,
   type RpcError,
 } from "@meeteora/contracts";
 import { and, asc, eq, gte, sql } from "drizzle-orm";
@@ -17,14 +18,32 @@ import {
   outbox,
 } from "@meeteora/db";
 import { parseInstant } from "./instant";
+import { BookingRulesService } from "./booking-rules.service";
+import { TIME_ZONE } from "./schedule";
 import { SlotsService } from "./slots.service";
 
 const DEFAULT_ORGANIZATION_SLUG = "default";
 const BOOKING_LOCK_KEY = "bookings";
 const LIST_LIMIT = 200;
+const MINUTE_MS = 60_000;
 
 function rpcError(status: number, message: string): RpcException {
   return new RpcException({ status, message } satisfies RpcError);
+}
+
+const instantFormat = new Intl.DateTimeFormat("en-GB", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: TIME_ZONE,
+});
+
+function formatInstant(instant: Date): string {
+  return instantFormat.format(instant);
+}
+
+function formatNotice(minutes: number): string {
+  if (minutes % 60 !== 0) return `${minutes} min`;
+  return `${minutes / 60}h`;
 }
 
 function toBooking(row: typeof bookings.$inferSelect): Booking {
@@ -44,7 +63,11 @@ export class BookingsService {
   @Inject(DATABASE)
   private readonly db: Database;
 
-  constructor(@Inject(SlotsService) private readonly slots: SlotsService) {}
+  constructor(
+    @Inject(SlotsService) private readonly slots: SlotsService,
+    @Inject(BookingRulesService)
+    private readonly bookingRules: BookingRulesService,
+  ) {}
 
   async create({
     ruleId,
@@ -88,6 +111,59 @@ export class BookingsService {
         .returning();
       await this.queueEvent(tx, Events.bookingCreated, toBooking(inserted));
       return inserted;
+    });
+
+    return toBooking(row);
+  }
+
+  /** Same rules as booking: the new start must be an open slot for its host. */
+  async reschedule({ id, start }: RescheduleBookingRequest): Promise<Booking> {
+    const startAt = parseInstant(start);
+
+    const row = await this.db.transaction(async (tx) => {
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtext(${BOOKING_LOCK_KEY}))`,
+      );
+
+      const [booking] = await tx
+        .select()
+        .from(bookings)
+        .where(eq(bookings.id, id));
+      if (!booking) throw rpcError(404, `Unknown booking: ${id}`);
+      if (booking.status !== "confirmed") {
+        throw rpcError(409, "Only confirmed bookings can be moved");
+      }
+      if (booking.startAt.getTime() === startAt.getTime()) return booking;
+      const { minNoticeMinutes } = await this.bookingRules.settings(tx);
+      const earliest = Date.now() + minNoticeMinutes * MINUTE_MS;
+      if (startAt.getTime() < earliest) {
+        throw rpcError(
+          409,
+          `Too soon: bookings need ${formatNotice(minNoticeMinutes)} notice. Earliest: ${formatInstant(new Date(earliest))}`,
+        );
+      }
+
+      const slot = await this.slots.find(booking.ruleId, startAt, tx, id);
+      if (!slot) {
+        throw rpcError(
+          409,
+          "That time isn't an open slot for this event type (check working hours and the slot grid)",
+        );
+      }
+      if (!slot.availableResourceIds.includes(booking.resourceId)) {
+        throw rpcError(409, "The host is already fully booked at that time");
+      }
+
+      const [updated] = await tx
+        .update(bookings)
+        .set({
+          startAt: new Date(slot.startEpochMs),
+          endAt: new Date(slot.endEpochMs),
+        })
+        .where(eq(bookings.id, id))
+        .returning();
+      await this.queueEvent(tx, Events.bookingRescheduled, toBooking(updated));
+      return updated;
     });
 
     return toBooking(row);

@@ -1,4 +1,5 @@
 import {
+  type BookingRules,
   type Booking,
   type BookingIdRequest,
   type CreateBookingRequest,
@@ -10,10 +11,12 @@ import {
   type ListBookingsRequest,
   type ListSlotsRequest,
   type ListSlotsResponse,
+  type RescheduleBookingRequest,
   type Resource,
   type ResourceIdRequest,
   type RpcError,
   SchedulingPatterns,
+  type UpdateBookingRulesRequest,
   type UpdateResourceRequest,
 } from "@meeteora/contracts";
 import {
@@ -67,6 +70,10 @@ export class SchedulingClient {
     return this.send(SchedulingPatterns.cancelBooking, request);
   }
 
+  rescheduleBooking(request: RescheduleBookingRequest): Promise<Booking> {
+    return this.send(SchedulingPatterns.rescheduleBooking, request);
+  }
+
   listEventTypes(): Promise<Array<EventType>> {
     return this.send(SchedulingPatterns.listEventTypes, {});
   }
@@ -93,6 +100,14 @@ export class SchedulingClient {
 
   deleteResource(request: ResourceIdRequest): Promise<Resource> {
     return this.send(SchedulingPatterns.deleteResource, request);
+  }
+
+  getBookingRules(): Promise<BookingRules> {
+    return this.send(SchedulingPatterns.getBookingRules, {});
+  }
+
+  updateBookingRules(request: UpdateBookingRulesRequest): Promise<BookingRules> {
+    return this.send(SchedulingPatterns.updateBookingRules, request);
   }
 
   private async send<TResult>(

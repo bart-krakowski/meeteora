@@ -1,9 +1,12 @@
 import type {
   Booking,
+  BookingRules,
+  BookingRulesSettings,
   CreateBookingRequest,
   CreateEventTypeRequest,
   EventType,
   Resource,
+  ResourceHours,
 } from "@meeteora/contracts";
 import type { GenerateSlotsResult } from "@tanstack/time";
 import { headers } from "next/headers";
@@ -28,6 +31,9 @@ export const fetchBookings = (from: Date) =>
 export const createBooking = (input: CreateBookingRequest) =>
   client.post<Booking>("/bookings", input);
 
+export const rescheduleBooking = (id: string, start: string) =>
+  client.patch<Booking>(`/bookings/${encodeURIComponent(id)}`, { start });
+
 export const cancelBooking = (id: string) =>
   client.delete<Booking>(`/bookings/${encodeURIComponent(id)}`);
 
@@ -42,11 +48,25 @@ export const deleteEventType = (id: string) =>
 
 export const fetchResources = () => client.get<Array<Resource>>("/resources");
 
-export const createResource = (name: string) =>
-  client.post<Resource>("/resources", { name });
+export interface ResourceInput {
+  name: string;
+  capacity: number;
+}
 
-export const renameResource = (id: string, name: string) =>
-  client.patch<Resource>(`/resources/${encodeURIComponent(id)}`, { name });
+export const createResource = (input: ResourceInput) =>
+  client.post<Resource>("/resources", input);
+
+export const updateResource = (
+  id: string,
+  input: Partial<ResourceInput & ResourceHours>,
+) =>
+  client.patch<Resource>(`/resources/${encodeURIComponent(id)}`, input);
 
 export const deleteResource = (id: string) =>
   client.delete<Resource>(`/resources/${encodeURIComponent(id)}`);
+
+export const fetchBookingRules = () =>
+  client.get<BookingRules>("/booking-rules");
+
+export const updateBookingRules = (input: BookingRulesSettings) =>
+  client.put<BookingRules>("/booking-rules", input);

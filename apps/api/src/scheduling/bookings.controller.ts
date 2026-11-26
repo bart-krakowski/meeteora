@@ -8,6 +8,7 @@ import {
   Inject,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -65,6 +66,20 @@ export class BookingsController {
   @UseGuards(AuthGuard)
   get(@Param("id", new ParseUUIDPipe()) id: string): Promise<Booking> {
     return this.scheduling.getBooking({ id });
+  }
+
+  @Patch(":id")
+  @UseGuards(AuthGuard)
+  reschedule(
+    @Param("id", new ParseUUIDPipe()) id: string,
+    @Body() body: { start?: unknown },
+  ): Promise<Booking> {
+    if (typeof body.start !== "string")
+      throw new BadRequestException("start must be a string");
+    return this.scheduling.rescheduleBooking({
+      id,
+      start: parseDate(body.start).toISOString(),
+    });
   }
 
   @Delete(":id")

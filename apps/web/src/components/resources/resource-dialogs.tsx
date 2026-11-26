@@ -12,7 +12,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@meeteora/ui/components/dialog';
-import { Field, FieldError, FieldLabel } from '@meeteora/ui/components/field';
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '@meeteora/ui/components/field';
 import { Input } from '@meeteora/ui/components/input';
 import { toast } from '@meeteora/ui/components/sonner';
 import { useForm } from '@tanstack/react-form';
@@ -35,19 +41,31 @@ export function useResourceMutationCallbacks() {
   };
 }
 
-const nameSchema = z.object({
+const MAX_CAPACITY = 1000;
+
+const resourceSchema = z.object({
   name: z
     .string()
+    .trim()
     .min(1, 'Enter a name.')
     .max(80, 'Name must be at most 80 characters.'),
+  capacity: z
+    .number({ invalid_type_error: 'Enter a number.' })
+    .int('Use a whole number.')
+    .min(1, 'Capacity must be at least 1.')
+    .max(MAX_CAPACITY, `Capacity must be at most ${MAX_CAPACITY}.`),
 });
 
-function NameDialog({
+type ResourceValues = z.infer<typeof resourceSchema>;
+
+const emptyResource: ResourceValues = { name: '', capacity: 1 };
+
+function ResourceDialog({
   trigger,
   title,
   description,
   submitLabel,
-  defaultName = '',
+  defaultValues = emptyResource,
   pending,
   onSubmit,
 }: {
@@ -55,18 +73,19 @@ function NameDialog({
   title: string;
   description: string;
   submitLabel: string;
-  defaultName?: string;
+  defaultValues?: ResourceValues;
   pending: boolean;
-  onSubmit: (name: string) => Promise<unknown>;
+  onSubmit: (values: ResourceValues) => Promise<unknown>;
 }) {
   const [open, setOpen] = useState(false);
-  const inputId = useId();
+  const nameId = useId();
+  const capacityId = useId();
 
   const form = useForm({
-    defaultValues: { name: defaultName },
-    validators: { onSubmit: nameSchema },
+    defaultValues,
+    validators: { onSubmit: resourceSchema },
     onSubmit: async ({ value }) => {
-      await onSubmit(value.name).then(
+      await onSubmit(resourceSchema.parse(value)).then(
         () => setOpen(false),
         () => {},
       );
@@ -78,7 +97,7 @@ function NameDialog({
       open={open}
       onOpenChange={(next) => {
         setOpen(next);
-        if (next) form.reset({ name: defaultName });
+        if (next) form.reset(defaultValues);
       }}
     >
       <DialogTrigger render={trigger} />
@@ -94,29 +113,71 @@ function NameDialog({
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
-          <form.Field
-            name="name"
-            children={(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
-              return (
-                <Field data-invalid={isInvalid} className="gap-2">
-                  <FieldLabel htmlFor={inputId}>Name</FieldLabel>
-                  <Input
-                    id={inputId}
-                    name={field.name}
-                    value={field.state.value}
-                    onBlur={field.handleBlur}
-                    onChange={(event) => field.handleChange(event.target.value)}
-                    aria-invalid={isInvalid}
-                    placeholder="e.g. Anna or Room 2"
-                    autoFocus
-                  />
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              );
-            }}
-          />
+          <FieldGroup>
+            <form.Field
+              name="name"
+              children={(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid} className="gap-2">
+                    <FieldLabel htmlFor={nameId}>Name</FieldLabel>
+                    <Input
+                      id={nameId}
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(event) =>
+                        field.handleChange(event.target.value)
+                      }
+                      aria-invalid={isInvalid}
+                      placeholder="e.g. Anna or Room 2"
+                      autoFocus
+                    />
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            />
+            <form.Field
+              name="capacity"
+              children={(field) => {
+                const isInvalid =
+                  field.state.meta.isTouched && !field.state.meta.isValid;
+                return (
+                  <Field data-invalid={isInvalid} className="gap-2">
+                    <FieldLabel htmlFor={capacityId}>Capacity</FieldLabel>
+                    <Input
+                      id={capacityId}
+                      name={field.name}
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={MAX_CAPACITY}
+                      step={1}
+                      value={
+                        Number.isNaN(field.state.value) ? '' : field.state.value
+                      }
+                      onBlur={field.handleBlur}
+                      onChange={(event) =>
+                        field.handleChange(event.target.valueAsNumber)
+                      }
+                      aria-invalid={isInvalid}
+                      className="w-28 tabular-nums"
+                    />
+                    <FieldDescription>
+                      How many bookings may overlap on this resource at once.
+                    </FieldDescription>
+                    {isInvalid && (
+                      <FieldError errors={field.state.meta.errors} />
+                    )}
+                  </Field>
+                );
+              }}
+            />
+          </FieldGroup>
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="ghost" />}>
               Cancel
@@ -137,35 +198,35 @@ export function AddResourceDialog() {
     trpc.resources.create.mutationOptions(useResourceMutationCallbacks()),
   );
   return (
-    <NameDialog
+    <ResourceDialog
       trigger={<Button>Add resource</Button>}
       title="Add resource"
-      description="A host or room that bookings can be held by. It's offered right away, Monday to Friday, 9:00 to 17:00."
+      description="A host or room that bookings can be held by. It's offered right away, Monday to Friday, 9:00 to 17:00. Change that with Hours in its row."
       submitLabel="Add resource"
       pending={create.isPending}
-      onSubmit={(name) => create.mutateAsync({ name })}
+      onSubmit={(values) => create.mutateAsync(values)}
     />
   );
 }
 
 export function EditResourceDialog({ resource }: { resource: Resource }) {
   const trpc = useTRPC();
-  const rename = useMutation(
-    trpc.resources.rename.mutationOptions(useResourceMutationCallbacks()),
+  const update = useMutation(
+    trpc.resources.update.mutationOptions(useResourceMutationCallbacks()),
   );
   return (
-    <NameDialog
+    <ResourceDialog
       trigger={
         <Button variant="ghost" size="sm">
-          Rename
+          Edit
         </Button>
       }
-      title={`Rename ${resource.name}`}
-      description="Existing bookings keep their host; only the name changes."
+      title={`Edit ${resource.name}`}
+      description="Existing bookings keep their host. A lower capacity only affects new bookings."
       submitLabel="Save"
-      defaultName={resource.name}
-      pending={rename.isPending}
-      onSubmit={(name) => rename.mutateAsync({ id: resource.id, name })}
+      defaultValues={{ name: resource.name, capacity: resource.capacity }}
+      pending={update.isPending}
+      onSubmit={(values) => update.mutateAsync({ id: resource.id, ...values })}
     />
   );
 }

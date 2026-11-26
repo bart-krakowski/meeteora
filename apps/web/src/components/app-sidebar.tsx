@@ -21,7 +21,7 @@ export function AppSidebar({
   user: React.ComponentProps<typeof NavUser>["user"];
 }) {
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <div className="flex items-center justify-between px-2">
           <Logo className="size-8 text-white" />

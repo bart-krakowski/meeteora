@@ -1,0 +1,1 @@
+ALTER TABLE "resources" ADD COLUMN "capacity" integer DEFAULT 1 NOT NULL;

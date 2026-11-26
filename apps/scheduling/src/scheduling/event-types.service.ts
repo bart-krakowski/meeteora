@@ -6,6 +6,7 @@ import type {
   EventTypeIdRequest,
   RpcError,
 } from '@meeteora/contracts';
+import type { BookingRulesSettings } from '@meeteora/contracts';
 import type { SlotRule } from '@tanstack/time';
 import { asc, eq } from 'drizzle-orm';
 import {
@@ -14,7 +15,7 @@ import {
   type DatabaseExecutor,
 } from '../database/database';
 import { eventTypes, organizations } from '@meeteora/db';
-import { CALENDAR_ID, RULE_DEFAULTS } from './schedule';
+import { resourceCalendarId, toRuleSettings } from './schedule';
 
 const DEFAULT_ORGANIZATION_SLUG = 'default';
 const SLUG_PATTERN = /^[a-z0-9-]+$/;
@@ -49,14 +50,15 @@ function toEventType(row: typeof eventTypes.$inferSelect): EventType {
 
 function toSlotRule(
   row: typeof eventTypes.$inferSelect,
-  resourceIds: Array<string>,
+  resourceId: string,
+  rules: BookingRulesSettings,
 ): SlotRule {
   return {
     id: row.id,
-    calendarId: CALENDAR_ID,
+    calendarId: resourceCalendarId(resourceId),
     duration: row.durationMinutes,
-    ...RULE_DEFAULTS,
-    resourceIds,
+    ...toRuleSettings(rules),
+    resourceIds: [resourceId],
   };
 }
 
@@ -125,10 +127,15 @@ export class EventTypesService {
   /** Slot rules derived from stored event types (fresh on every call); every rule can use every resource. */
   async listRules(
     resourceIds: Array<string>,
+    rules: BookingRulesSettings,
     executor: DatabaseExecutor = this.db,
   ): Promise<Array<SlotRule>> {
     const rows = await executor.select().from(eventTypes);
-    return rows.map((row) => toSlotRule(row, resourceIds));
+    // One rule per (event type, resource): each resource has its own hours.
+    // Rules keep the event type's id, so SlotsService merges them back by time.
+    return rows.flatMap((row) =>
+      resourceIds.map((resourceId) => toSlotRule(row, resourceId, rules)),
+    );
   }
 
   private async defaultOrganizationId(

@@ -8,11 +8,14 @@ import {
   createResource,
   deleteEventType,
   deleteResource,
+  fetchBookingRules,
   fetchBookings,
   fetchEventTypes,
   fetchResources,
   fetchSlots,
-  renameResource,
+  rescheduleBooking,
+  updateBookingRules,
+  updateResource,
 } from "@/lib/api";
 import {
   getPublicEvent,
@@ -81,6 +84,11 @@ const bookings = t.router({
   cancel: t.procedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(({ input }) => call(() => cancelBooking(input.id))),
+  reschedule: t.procedure
+    .input(z.object({ id: z.string().uuid(), start: z.string().datetime() }))
+    .mutation(({ input }) =>
+      call(() => rescheduleBooking(input.id, input.start)),
+    ),
 });
 
 const eventTypes = t.router({
@@ -98,19 +106,60 @@ const eventTypes = t.router({
     .mutation(({ input }) => call(() => deleteEventType(input.id))),
 });
 
-const resourceName = z.string().trim().min(1, "Enter a name.").max(80);
+const resourceInput = z.object({
+  name: z.string().trim().min(1, "Enter a name.").max(80),
+  capacity: z.number().int().min(1).max(1000),
+});
+
+const hm = z
+  .string()
+  .regex(/^(?:[01]\d|2[0-3]):[0-5]\d$|^24:00$/, "Use HH:MM.");
+const dayRanges = z.array(z.object({ start: hm, end: hm })).max(8);
+const resourceHoursInput = z.object({
+  weekly: z.object({
+    monday: dayRanges,
+    tuesday: dayRanges,
+    wednesday: dayRanges,
+    thursday: dayRanges,
+    friday: dayRanges,
+    saturday: dayRanges,
+    sunday: dayRanges,
+  }),
+  daysOff: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).max(366),
+});
 
 const resources = t.router({
   list: t.procedure.query(() => call(fetchResources)),
   create: t.procedure
-    .input(z.object({ name: resourceName }))
-    .mutation(({ input }) => call(() => createResource(input.name))),
-  rename: t.procedure
-    .input(z.object({ id: z.string().uuid(), name: resourceName }))
-    .mutation(({ input }) => call(() => renameResource(input.id, input.name))),
+    .input(resourceInput)
+    .mutation(({ input }) => call(() => createResource(input))),
+  update: t.procedure
+    .input(resourceInput.extend({ id: z.string().uuid() }))
+    .mutation(({ input: { id, ...input } }) =>
+      call(() => updateResource(id, input)),
+    ),
+  updateHours: t.procedure
+    .input(resourceHoursInput.extend({ id: z.string().uuid() }))
+    .mutation(({ input: { id, ...hours } }) =>
+      call(() => updateResource(id, hours)),
+    ),
   delete: t.procedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(({ input }) => call(() => deleteResource(input.id))),
+});
+
+const bookingRules = t.router({
+  get: t.procedure.query(() => call(fetchBookingRules)),
+  update: t.procedure
+    .input(
+      z.object({
+        slotStepMinutes: z.number().int().min(5).max(240).nullable(),
+        minNoticeMinutes: z.number().int().min(0).max(30 * 24 * 60),
+        bufferAfterMinutes: z.number().int().min(0).max(240),
+        maxHorizonDays: z.number().int().min(1).max(365),
+      }),
+    )
+    .mutation(({ input }) => call(() => updateBookingRules(input))),
 });
 
 const slots = t.router({
@@ -160,6 +209,7 @@ export const appRouter = t.router({
   bookings,
   eventTypes,
   resources,
+  bookingRules,
   slots,
   publicEvents,
 });

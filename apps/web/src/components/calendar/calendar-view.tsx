@@ -52,9 +52,12 @@ import { Button } from "@meeteora/ui/components/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@meeteora/ui/components/dialog";
+import { toast } from "@meeteora/ui/components/sonner";
 import { Input } from "@meeteora/ui/components/input";
 import {
   Field,
@@ -71,7 +74,7 @@ import {
   ContextMenuTrigger,
 } from "@meeteora/ui/components/context-menu";
 import { ScrollArea } from "@meeteora/ui/components/scroll-area";
-import { TIME_ZONE } from "@/lib/format";
+import { formatDateTime, formatTime, TIME_ZONE } from "@/lib/format";
 
 const features = calendarFeatures([
   historyFeature,
@@ -187,6 +190,48 @@ function dropDay(data: unknown): string | undefined {
   return isDayDropData(data) ? data.isoDate : undefined;
 }
 
+type Point = { x: number; y: number };
+
+type ScrollSnapshot = Array<{ element: Element; top: number }>;
+
+/** Every vertically scrollable ancestor (plus the page), with its scrollTop now. */
+function snapshotScroll(from: Element | null | undefined): ScrollSnapshot {
+  const snapshot: ScrollSnapshot = [];
+  for (let el = from?.parentElement; el; el = el.parentElement) {
+    if (el.scrollHeight > el.clientHeight) {
+      const { overflowY } = getComputedStyle(el);
+      if (overflowY === "auto" || overflowY === "scroll") {
+        snapshot.push({ element: el, top: el.scrollTop });
+      }
+    }
+  }
+  const page = document.scrollingElement;
+  if (page) snapshot.push({ element: page, top: page.scrollTop });
+  return snapshot;
+}
+
+/** How far the content scrolled since the snapshot (autoscroll during drag). */
+function scrolledSince(snapshot: ScrollSnapshot): number {
+  return snapshot.reduce((sum, { element, top }) => sum + element.scrollTop - top, 0);
+}
+
+/**
+ * The day column under the pointer, by geometry. A DOM hit test doesn't work:
+ * the dragged chip stays a DOM child of its origin column, so hit-test
+ * ancestry (and dnd-kit's own target) keeps reporting the origin day.
+ */
+function dayAtPoint({ x, y }: Point): string | undefined {
+  for (const column of document.querySelectorAll<HTMLElement>(
+    "[data-day-drop]",
+  )) {
+    const rect = column.getBoundingClientRect();
+    if (x >= rect.left && x < rect.right && y >= rect.top && y < rect.bottom) {
+      return column.dataset.dayDate;
+    }
+  }
+  return undefined;
+}
+
 function eventDragSource(data: unknown): EventDragData | undefined {
   return isEventDragData(data) ? data : undefined;
 }
@@ -256,6 +301,7 @@ function DayDropZone({
         setDroppableRef(element);
         columnRef?.(element);
       }}
+      data-day-drop=""
       className={`${className ?? ""} ${isDropTarget ? "ring-1 ring-inset ring-neutral-500" : ""}`}
       {...rest}
     >
@@ -375,6 +421,7 @@ const workingCalendars: Array<WorkingCalendar> = [
 export interface CalendarResource {
   id: string;
   name: string;
+  capacity: number;
 }
 
 export interface CalendarBooking {
@@ -386,8 +433,8 @@ export interface CalendarBooking {
   title: string;
 }
 
-function toResource({ id, name }: CalendarResource): Resource {
-  return { id, label: name, capacity: [1] };
+function toResource({ id, name, capacity }: CalendarResource): Resource {
+  return { id, label: name, capacity: [capacity] };
 }
 
 const wallClockFormat = new Intl.DateTimeFormat("en-CA", {
@@ -409,6 +456,26 @@ function toWallClock(iso: string): string {
       .map((part) => [part.type, part.value]),
   );
   return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`;
+}
+
+function formatNotice(minutes: number): string {
+  return minutes % 60 === 0 ? `${minutes / 60}h` : `${minutes} min`;
+}
+
+/** Naive wall-clock string in TIME_ZONE -> ISO instant (DST-safe). */
+function fromWallClock(wallClock: string): string {
+  const target = Date.parse(`${wallClock}Z`);
+  let epoch = target;
+  for (let pass = 0; pass < 2; pass++) {
+    const seen = Date.parse(`${toWallClock(new Date(epoch).toISOString())}Z`);
+    epoch -= seen - target;
+  }
+  return new Date(epoch).toISOString();
+}
+
+function formatWallClockRange(start: string, end: string): string {
+  const startIso = fromWallClock(start);
+  return `${formatDateTime(startIso)}–${formatTime(fromWallClock(end))}`;
 }
 
 function toCalendarEvent(
@@ -1552,21 +1619,92 @@ function ScopeChoiceModal({
   );
 }
 
+interface PendingMove {
+  eventId: string;
+  title: string;
+  fromStart: string;
+  fromEnd: string;
+  toStart: string;
+  toEnd: string;
+}
+
+function ConfirmMoveDialog({
+  move,
+  isSaving,
+  onConfirm,
+  onCancel,
+}: {
+  move: PendingMove | null;
+  isSaving: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <Dialog
+      open={move !== null}
+      onOpenChange={(open) => !open && !isSaving && onCancel()}
+    >
+      <DialogContent className="sm:max-w-sm bg-card border-border">
+        <DialogHeader>
+          <DialogTitle>Move booking?</DialogTitle>
+          <DialogDescription>
+            {move?.title}. The attendee keeps the same host.
+          </DialogDescription>
+        </DialogHeader>
+        {move && (
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+            <dt className="text-muted-foreground">From</dt>
+            <dd className="tabular-nums line-through decoration-muted-foreground/60">
+              {formatWallClockRange(move.fromStart, move.fromEnd)}
+            </dd>
+            <dt className="text-muted-foreground">To</dt>
+            <dd className="font-medium tabular-nums">
+              {formatWallClockRange(move.toStart, move.toEnd)}
+            </dd>
+          </dl>
+        )}
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={isSaving}
+            onClick={onCancel}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            disabled={isSaving}
+            onClick={onConfirm}
+            autoFocus
+          >
+            {isSaving ? "Moving…" : "Move booking"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export interface CalendarViewProps {
   resources: Array<CalendarResource>;
   bookings: Array<CalendarBooking>;
+  /** Persists a booking's new start (ISO instant). Rejects if the time is taken. */
+  onMoveBooking: (id: string, start: string) => Promise<unknown>;
+  /** From booking rules; drops sooner than this are refused before asking the server. */
+  minNoticeMinutes: number;
 }
 
 export function CalendarView({
   resources: initialResources,
   bookings,
+  onMoveBooking,
+  minNoticeMinutes,
 }: CalendarViewProps) {
-  const [resources, setResources] = useState<Array<Resource>>(() =>
-    initialResources.map(toResource),
+  const resources = useMemo(
+    () => initialResources.map(toResource),
+    [initialResources],
   );
-  useEffect(() => {
-    setResources(initialResources.map(toResource));
-  }, [initialResources]);
 
   const events = useMemo(() => {
     const resourceById = new Map(
@@ -1574,6 +1712,13 @@ export function CalendarView({
     );
     return bookings.map((booking) => toCalendarEvent(booking, resourceById));
   }, [bookings, initialResources]);
+  const eventsRef = useRef(events);
+  eventsRef.current = events;
+  const minNoticeRef = useRef(minNoticeMinutes);
+  minNoticeRef.current = minNoticeMinutes;
+
+  const [pendingMove, setPendingMove] = useState<PendingMove | null>(null);
+  const [isMovingBooking, setIsMovingBooking] = useState(false);
 
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
@@ -1644,6 +1789,36 @@ export function CalendarView({
       enabled: true,
       containerHeight: 1440,
       constraints: { snapToMinutes: 15 },
+      // The calendar has already moved the event locally; confirm, then persist.
+      onMoveEnd: (eventId, newStart, newEnd) => {
+        const original = eventsRef.current.find((e) => e.id === eventId);
+        // Bookings are always built with wall-clock strings (toCalendarEvent).
+        if (
+          !original ||
+          typeof original.start !== "string" ||
+          typeof original.end !== "string"
+        ) {
+          return;
+        }
+        // Mirror the server's min-notice rule so past drops never reach the dialog.
+        const minNotice = minNoticeRef.current;
+        const earliest = Date.now() + minNotice * 60_000;
+        if (Date.parse(fromWallClock(newStart)) < earliest) {
+          revertToServer();
+          toast.error(
+            `Too soon: bookings need ${formatNotice(minNotice)} notice from now. Earliest: ${formatDateTime(new Date(earliest).toISOString())}`,
+          );
+          return;
+        }
+        setPendingMove({
+          eventId,
+          title: original.title,
+          fromStart: original.start,
+          fromEnd: original.end,
+          toStart: newStart,
+          toEnd: newEnd,
+        });
+      },
       onMoveError: (error) => {
         setMoveError(error);
       },
@@ -1669,6 +1844,33 @@ export function CalendarView({
   useEffect(() => {
     setEvents(events);
   }, [setEvents, events]);
+
+  /** Drops local edits and shows the bookings as the server has them. */
+  const revertToServer = () => setEvents(eventsRef.current);
+
+  const cancelPendingMove = () => {
+    setPendingMove(null);
+    revertToServer();
+  };
+
+  const confirmPendingMove = async () => {
+    if (!pendingMove) return;
+    setIsMovingBooking(true);
+    try {
+      await onMoveBooking(pendingMove.eventId, fromWallClock(pendingMove.toStart));
+      toast.success("Booking moved");
+    } catch (error) {
+      revertToServer();
+      toast.error(
+        error instanceof Error && error.message
+          ? error.message
+          : "Couldn't move the booking. Try again.",
+      );
+    } finally {
+      setIsMovingBooking(false);
+      setPendingMove(null);
+    }
+  };
 
   useEffect(() => {
     setCalendarResources(resources);
@@ -2239,9 +2441,12 @@ export function CalendarView({
         }
       : null;
 
+  const dragScrollRef = useRef<ScrollSnapshot>([]);
+
   const handleDragStart = (e: DragStartEvent) => {
     const source = eventDragSource(e.operation.source?.data);
     if (!source) return;
+    dragScrollRef.current = snapshotScroll(e.operation.source?.element);
 
     calendar.startEventMove({
       eventId: source.event.id,
@@ -2259,15 +2464,25 @@ export function CalendarView({
     const source = eventDragSource(e.operation.source?.data);
     if (!source) return;
 
-    const { x, y } = e.operation.transform;
+    // dragmove fires before dnd-kit updates operation.position/transform, so
+    // derive the pointer from the event itself rather than the snapshot.
+    const { current, initial } = e.operation.position;
+    const pointer: Point = e.to ?? {
+      x: current.x + (e.by?.x ?? 0),
+      y: current.y + (e.by?.y ?? 0),
+    };
+    const x = pointer.x - initial.x;
+    const y = pointer.y - initial.y;
+    // The grid may autoscroll under the pointer; that distance counts too.
+    const gridShift = y + scrolledSince(dragScrollRef.current);
     for (const element of dragGroupSiblings(source.event.id)) {
       element.style.translate = `${x}px ${y}px`;
       element.style.zIndex = "40";
     }
 
     calendar.updateEventMove({
-      dayDate: dropDay(e.operation.target?.data),
-      deltaPixels: y,
+      dayDate: dayAtPoint(pointer) ?? dropDay(e.operation.target?.data),
+      deltaPixels: gridShift,
     });
   };
 
@@ -2285,6 +2500,12 @@ export function CalendarView({
       return;
     }
 
+    // Sync to the final pointer position before committing.
+    const { current, initial } = e.operation.position;
+    calendar.updateEventMove({
+      dayDate: dayAtPoint(current) ?? dropDay(e.operation.target?.data),
+      deltaPixels: current.y - initial.y + scrolledSince(dragScrollRef.current),
+    });
     calendar.endEventMove();
   };
 
@@ -2455,47 +2676,6 @@ export function CalendarView({
                     />
                     {category.label}
                   </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mb-4 rounded-lg border border-neutral-800 bg-neutral-950 px-4 py-3">
-            <div className="mb-2 text-xs uppercase tracking-wide text-neutral-500">
-              Capacity Controls
-            </div>
-            <div className="flex flex-wrap gap-3">
-              {resources.map((resource) => {
-                const currentCapacity = resource.capacity?.[0] ?? 1;
-                return (
-                  <div
-                    key={resource.id}
-                    className="flex items-center gap-2 rounded-md border border-neutral-800 bg-black px-3 py-2"
-                  >
-                    <span className="text-sm text-neutral-300">
-                      {resource.label}
-                    </span>
-                    <Input
-                      type="number"
-                      min={1}
-                      step={1}
-                      value={currentCapacity}
-                      onChange={(e) => {
-                        const nextCapacity = Math.max(
-                          1,
-                          Number(e.target.value) || 1,
-                        );
-                        setResources((prev) =>
-                          prev.map((r) =>
-                            r.id === resource.id
-                              ? { ...r, capacity: [nextCapacity] }
-                              : r,
-                          ),
-                        );
-                      }}
-                      className="h-8 w-24"
-                    />
-                  </div>
                 );
               })}
             </div>
@@ -2865,6 +3045,13 @@ export function CalendarView({
               });
           }}
           onClose={() => setMoveScopeChoice(null)}
+        />
+
+        <ConfirmMoveDialog
+          move={pendingMove}
+          isSaving={isMovingBooking}
+          onConfirm={() => void confirmPendingMove()}
+          onCancel={cancelPendingMove}
         />
 
         {resizeError && (

@@ -64,6 +64,27 @@
       "when": 1794578445526,
       "tag": "0008_seed_default_resource",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795632036438,
+      "tag": "0009_resource_capacity",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795648251037,
+      "tag": "0010_availability",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795689463401,
+      "tag": "0011_resource_hours",
+      "breakpoints": true
     }
   ]
 }

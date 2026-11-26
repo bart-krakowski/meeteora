@@ -187,6 +187,15 @@ export function CloseIcon(props: IconProps) {
   );
 }
 
+export function PlusIcon(props: IconProps) {
+  return (
+    <IconSvg {...props}>
+      <line x1="8" y1="2.75" x2="8" y2="13.25" />
+      <line x1="2.75" y1="8" x2="13.25" y2="8" />
+    </IconSvg>
+  );
+}
+
 export function CopyIcon(props: IconProps) {
   return (
     <IconSvg {...props}>

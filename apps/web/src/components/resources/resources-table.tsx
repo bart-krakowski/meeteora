@@ -9,14 +9,18 @@ import {
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useTRPC } from '@/trpc/provider';
+import { summarizeHours } from './hours-editor';
 import {
   EditResourceDialog,
   useResourceMutationCallbacks,
 } from './resource-dialogs';
+import { ResourceHoursDialog } from './resource-hours-dialog';
 
 export interface ResourceRow extends Resource {
   /** Confirmed bookings that haven't started yet. */
   upcoming: number;
+  /** One-line summary of weekly hours and days off. */
+  hours: string;
 }
 
 function ResourceActions({ resource }: { resource: ResourceRow }) {
@@ -27,6 +31,7 @@ function ResourceActions({ resource }: { resource: ResourceRow }) {
   const busy = resource.upcoming > 0;
   return (
     <div className="flex justify-end gap-2">
+      <ResourceHoursDialog resource={resource} />
       <EditResourceDialog resource={resource} />
       <Button
         variant="outline"
@@ -50,6 +55,15 @@ const columns = column.columns([
     header: 'Name',
     sortFn: 'text',
     meta: { className: 'font-medium' },
+  }),
+  column.accessor('capacity', {
+    header: 'Capacity',
+    sortFn: 'basic',
+    meta: { className: 'tabular-nums' },
+  }),
+  column.accessor('hours', {
+    header: 'Hours',
+    meta: { className: 'text-muted-foreground tabular-nums' },
   }),
   column.accessor('upcoming', {
     header: 'Upcoming bookings',
@@ -82,10 +96,10 @@ export function ResourcesTable({ upcomingFrom }: { upcomingFrom: string }) {
         (upcoming.get(booking.resourceId) ?? 0) + 1,
       );
     }
-    return resourceList.map(({ id, name }) => ({
-      id,
-      name,
-      upcoming: upcoming.get(id) ?? 0,
+    return resourceList.map((resource) => ({
+      ...resource,
+      hours: summarizeHours(resource),
+      upcoming: upcoming.get(resource.id) ?? 0,
     }));
   }, [resourceList, bookings]);
 

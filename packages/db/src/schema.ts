@@ -9,6 +9,19 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+const NINE_TO_FIVE = [{ start: "09:00", end: "17:00" }];
+
+/** New resources open Mon–Fri 09:00–17:00. */
+export const DEFAULT_WEEKLY: Record<string, Array<{ start: string; end: string }>> = {
+  monday: NINE_TO_FIVE,
+  tuesday: NINE_TO_FIVE,
+  wednesday: NINE_TO_FIVE,
+  thursday: NINE_TO_FIVE,
+  friday: NINE_TO_FIVE,
+  saturday: [],
+  sunday: [],
+};
+
 export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
   slug: text("slug").notNull().unique(),
@@ -43,7 +56,31 @@ export const resources = pgTable("resources", {
     .notNull()
     .references(() => organizations.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
+  /** How many bookings may overlap on this resource at once. */
+  capacity: integer("capacity").notNull().default(1),
+  /** Weekday -> list of { start, end } "HH:MM" ranges; Mon–Fri 09:00–17:00 by default. */
+  weekly: jsonb("weekly")
+    .$type<Record<string, Array<{ start: string; end: string }>>>()
+    .notNull()
+    .default(DEFAULT_WEEKLY),
+  /** "YYYY-MM-DD" dates closed all day. */
+  daysOff: jsonb("days_off").$type<Array<string>>().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+/** Slot rules shared by every resource, one row per organization. */
+export const availability = pgTable("availability", {
+  organizationId: uuid("organization_id")
+    .primaryKey()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  /** Null: slots start every event length. */
+  slotStepMinutes: integer("slot_step_minutes"),
+  minNoticeMinutes: integer("min_notice_minutes").notNull().default(120),
+  bufferAfterMinutes: integer("buffer_after_minutes").notNull().default(10),
+  maxHorizonDays: integer("max_horizon_days").notNull().default(30),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });

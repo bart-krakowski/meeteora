@@ -1,4 +1,4 @@
-import type { Resource } from "@meeteora/contracts";
+import type { Resource, UpdateResourceRequest } from "@meeteora/contracts";
 import {
   BadRequestException,
   Body,
@@ -17,6 +17,9 @@ import { SchedulingClient } from "./scheduling.client";
 
 interface ResourceBody {
   name?: unknown;
+  capacity?: unknown;
+  weekly?: unknown;
+  daysOff?: unknown;
 }
 
 function requireName(body: ResourceBody): string {
@@ -24,6 +27,42 @@ function requireName(body: ResourceBody): string {
     throw new BadRequestException("name must be a non-empty string");
   }
   return body.name;
+}
+
+function requireCapacity(body: ResourceBody): number {
+  const { capacity } = body;
+  if (typeof capacity !== "number" || !Number.isInteger(capacity) || capacity < 1) {
+    throw new BadRequestException("capacity must be a positive integer");
+  }
+  return capacity;
+}
+
+type ResourceChanges = Omit<UpdateResourceRequest, "id">;
+
+/**
+ * A PATCH may change any of name, capacity, weekly hours and days off.
+ * Hours are only shape-checked here; the scheduling service validates them.
+ */
+function resourceChanges(body: ResourceBody): ResourceChanges {
+  const changes: ResourceChanges = {};
+  if (body.name !== undefined) changes.name = requireName(body);
+  if (body.capacity !== undefined) changes.capacity = requireCapacity(body);
+  if (body.weekly !== undefined) {
+    if (typeof body.weekly !== "object" || body.weekly === null) {
+      throw new BadRequestException("weekly must be an object");
+    }
+    changes.weekly = body.weekly as ResourceChanges["weekly"];
+  }
+  if (body.daysOff !== undefined) {
+    if (!Array.isArray(body.daysOff)) {
+      throw new BadRequestException("daysOff must be a list");
+    }
+    changes.daysOff = body.daysOff as Array<string>;
+  }
+  if (Object.keys(changes).length === 0) {
+    throw new BadRequestException("Nothing to update");
+  }
+  return changes;
 }
 
 @Controller("resources")
@@ -40,15 +79,18 @@ export class ResourcesController {
 
   @Post()
   create(@Body() body: ResourceBody): Promise<Resource> {
-    return this.scheduling.createResource({ name: requireName(body) });
+    return this.scheduling.createResource({
+      name: requireName(body),
+      ...(body.capacity !== undefined && { capacity: requireCapacity(body) }),
+    });
   }
 
   @Patch(":id")
-  rename(
+  update(
     @Param("id", new ParseUUIDPipe()) id: string,
     @Body() body: ResourceBody,
   ): Promise<Resource> {
-    return this.scheduling.updateResource({ id, name: requireName(body) });
+    return this.scheduling.updateResource({ id, ...resourceChanges(body) });
   }
 
   @Delete(":id")

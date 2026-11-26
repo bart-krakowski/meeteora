@@ -10,6 +10,7 @@ export default async function CalendarPage() {
     queryClient.prefetchQuery(trpc.resources.list.queryOptions()),
     queryClient.prefetchQuery(trpc.bookings.list.queryOptions({ from: HISTORY_START })),
     queryClient.prefetchQuery(trpc.eventTypes.list.queryOptions()),
+    queryClient.prefetchQuery(trpc.bookingRules.get.queryOptions()),
   ]);
 
   return (

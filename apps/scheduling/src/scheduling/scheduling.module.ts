@@ -2,6 +2,8 @@ import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ClientsModule, Transport } from "@nestjs/microservices";
 import { SCHEDULING_EVENTS_EXCHANGE } from "@meeteora/contracts";
+import { BookingRulesController } from "./booking-rules.controller";
+import { BookingRulesService } from "./booking-rules.service";
 import { BookingsController } from "./bookings.controller";
 import { BookingsService } from "./bookings.service";
 import { EventTypesController } from "./event-types.controller";
@@ -36,12 +38,14 @@ import { SlotsService } from "./slots.service";
     BookingsController,
     EventTypesController,
     ResourcesController,
+    BookingRulesController,
   ],
   providers: [
     SlotsService,
     BookingsService,
     EventTypesService,
     ResourcesService,
+    BookingRulesService,
     OutboxRelay,
   ],
 })

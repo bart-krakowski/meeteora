@@ -2,6 +2,7 @@ import { SCHEDULING_QUEUE } from "@meeteora/contracts";
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ClientsModule, Transport } from "@nestjs/microservices";
+import { BookingRulesController } from "./booking-rules.controller";
 import { BookingsController } from "./bookings.controller";
 import { EventTypesController } from "./event-types.controller";
 import { ResourcesController } from "./resources.controller";
@@ -30,6 +31,7 @@ import { SlotsController } from "./slots.controller";
     BookingsController,
     EventTypesController,
     ResourcesController,
+    BookingRulesController,
   ],
   providers: [SchedulingClient],
   exports: [SchedulingClient],
